@@ -1,0 +1,15 @@
+# 股票分析 skill 依赖（与历史项目运行环境一致，Python 3.10）
+pandas==2.0.2
+numpy==1.26.2
+scipy==1.15.3
+matplotlib==3.9.2
+python-docx==1.2.0
+requests==2.32.5
+akshare==1.18.84
+mini-racer==0.14.1
+pypdf==6.16.0
+PyPDF2==3.0.1
+PyMuPDF==1.26.0
+yfinance==0.2.66
+openpyxl==3.1.5
+XlsxWriter==3.2.3
