@@ -50,8 +50,13 @@ VAGUE_WORDS = ('深度', '差不多', '尽量', '大概', '可能吧', '看着�
 ENOUGH_MARKS = ('够了', '不用问了', '就这些', '停止提问')
 
 
-def new_brief(subject, report_no=None):
-    return {'subject': subject, 'report_no': report_no,
+SELF_DISCLAIMER = '需求由 self-grill 代理推导，未经用户确认——/drill 编号 可修正重跑'
+
+
+def new_brief(subject, report_no=None, mode='user'):
+    """mode='user'：真人对谈（/grill，批准=唯一人工门）；
+    mode='self'：双子代理自我拷问（/ask，self_approve 自动批准+免责标注）。"""
+    return {'subject': subject, 'report_no': report_no, 'mode': mode,
             'fields': {k: None for k in FIELD_LABELS},
             'waves': [], 'followups': [], 'approval': None,
             'created': datetime.datetime.now().isoformat(timespec='seconds')}
@@ -70,13 +75,15 @@ def said_enough(answers):
     return False
 
 
-def record_wave(brief, questions, answers, decisions=None, followups=None):
+def record_wave(brief, questions, answers, decisions=None, followups=None,
+                actor='user'):
     """记录一波问答与由此固化的决策。
 
     questions: [{'id', 'q', 'options': [...]}]
     answers:   [{'question_id', 'answer'}]（answer 可为选项 label 或自定义文本）
     decisions: [{'field', 'value'}] 本波固化的需求决策（写入 brief.fields）
     followups: 本波识别出的待深挖点（模糊词/新变量/自定义输入），下一波必须覆盖
+    actor:     'user'（/grill 真人）或 'self'（/ask 代理应答者）
     """
     if len(brief['waves']) == 0 and len(questions or []) < MIN_FIRST_WAVE:
         raise ValueError('首波至少 %d 问（批量波次协议），当前 %d'
@@ -91,7 +98,8 @@ def record_wave(brief, questions, answers, decisions=None, followups=None):
     brief['waves'].append({'wave': wave_no, 'questions': questions or [],
                            'answers': answers or [],
                            'decisions': decisions or [],
-                           'followups': followups or []})
+                           'followups': followups or [],
+                           'actor': actor})
     brief.pop('_derived_followups', None)
     return brief['waves'][-1]
 
@@ -164,9 +172,23 @@ def approve(brief, note=''):
     return brief['approval']
 
 
+def self_approve(brief, note=''):
+    """self-grill 自动批准（/ask 零人工路线）：完整性校验通过后自动放行，
+    approval 带 auto=True 与免责标注——报告封面/首页必须同步声明。"""
+    if brief.get('mode') != 'self':
+        raise ValueError("self_approve 仅用于 mode='self' 的 brief（/ask 路线）")
+    approval = approve(brief, note=note or SELF_DISCLAIMER)
+    approval['auto'] = True
+    approval['disclaimer'] = SELF_DISCLAIMER
+    return approval
+
+
 def summary(brief):
-    """全部决策摘要（批准前展示）。"""
+    """全部决策摘要（批准前展示 / self-grill 完成摘要引用）。"""
     lines = ['## 需求摘要 · %s' % brief.get('subject'), '']
+    if brief.get('mode') == 'self':
+        lines.append('> ⚠ %s' % SELF_DISCLAIMER)
+        lines.append('')
     for k, label in FIELD_LABELS.items():
         v = (brief.get('fields') or {}).get(k)
         if v is None:
@@ -174,9 +196,10 @@ def summary(brief):
         if isinstance(v, list):
             v = '；'.join(str(x) for x in v)
         lines.append('- **%s**: %s' % (label, v))
-    lines.append('- **波次**: %d 波，共 %d 问'
+    lines.append('- **波次**: %d 波，共 %d 问%s'
                  % (len(brief.get('waves') or []),
-                    sum(len(w.get('questions') or []) for w in brief.get('waves') or [])))
+                    sum(len(w.get('questions') or []) for w in brief.get('waves') or []),
+                    '（self-grill 代理对谈）' if brief.get('mode') == 'self' else ''))
     fp = open_followups(brief)
     if fp:
         lines.append('- **仍未查明（将写入盲区）**: %s' % '；'.join(fp[:5]))

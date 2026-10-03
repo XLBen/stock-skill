@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v3.1（2026-10-03）self-grill（/ask）零人工路线
+
+- **/ask 命令**：用户一句话提问 → 拷问者×应答者双子代理（互不可见，文件总线对谈）按 grill 同款波次协议自我拷问（≤6 波），推导 brief 后 `brief_lib.self_approve()` 自动批准（approval 带 auto+免责），直接走 full 级流水线至 docx 交付——全程零用户参与
+- **新模板**：self_grill_interviewer.md（对代理答案的钻取规则：弱推断/中性必追问默认假设）/ self_grill_responder.md（推断强度分级 [代理推断·强/中/弱]、禁编造私有信息、务实偏好兜底）
+- **brief_lib**：new_brief(mode='user'|'self')；record_wave 带 actor；self_approve 自动批准+免责字段；summary 对 self 模式附免责头
+- **纪律**：self-grill 报告封面+首页脚注双重免责标注；完成摘要高亮 Top3 代理推断；事后 /drill（模式A）→ /report resume 修正重跑；波次耗尽按务实偏好兜底填充，禁止 blocked 悬停
+- 子代理防火墙矩阵 +2 角色；SKILL.md 命令表与 self-grill 节；selftest +1 用例
+
 ## v3.0（2026-10-03）全自治流水线重构
 
 - **grill 双模式**：`brief_lib`（多波次批量刨根：首波 ≥5 问、模糊词强制派生追问、终止三条件、批准=唯一人工门）；询问（grill_interviewer.md → /grill）与追问（drill_interrogator.md → /drill）prompt 分离，以 brief.json 文件为状态

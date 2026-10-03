@@ -1163,6 +1163,38 @@ def test_base_rate_downgrade():
     expect(not fc2['base_rate_downgrades'], '带 base_rate_ref 不应降级')
 
 
+def test_self_grill_brief():
+    import brief_lib as blf
+    b = blf.new_brief('XX股份能买吗', report_no=9, mode='self')
+    expect(b['mode'] == 'self', 'self 模式应记录')
+    qs = [{'id': 'q%d' % i, 'q': '问题%d' % i, 'options': ['A', 'B']} for i in range(5)]
+    blf.record_wave(b, qs,
+                    [{'question_id': 'q1', 'answer': '买入决策', 'strength': '[代理推断·强]'}],
+                    decisions=[{'field': 'purpose', 'value': '买入决策'}], actor='self')
+    expect(b['waves'][0]['actor'] == 'self', 'self 波次应带 actor 标记')
+    try:
+        blf.self_approve(b)
+        raise AssertionError('不完整 self brief 应拒绝自动批准')
+    except ValueError:
+        pass
+    for field, val in [('report_type', '决策测算'), ('reader', '自己决策'),
+                       ('key_concerns', ['方向结论', '风险点', '触发条件']),
+                       ('failure_criteria', '方向错误即失败'), ('time_range', '1年'),
+                       ('length_pref', '标准'), ('language', '中文'), ('flow_level', 'full')]:
+        b['fields'][field] = val
+    ap = blf.self_approve(b)
+    expect(ap['approved'] and ap.get('auto') is True, 'self_approve 应自动批准')
+    expect('self-grill' in ap.get('disclaimer', ''), '自动批准须带免责标注')
+    s = blf.summary(b)
+    expect('⚠' in s and '代理推导' in s, 'summary 应附免责头')
+    b2 = blf.new_brief('普通路线', mode='user')
+    try:
+        blf.self_approve(b2)
+        raise AssertionError('user 模式 brief 应拒绝 self_approve')
+    except ValueError:
+        pass
+
+
 # ==================== 联网（--offline 跳过） ====================
 
 def test_net_damodaran():
@@ -1218,7 +1250,7 @@ def main():
     v2_tests = [test_report_depth_v2, test_report_review_tools, test_trace_missing_files_fail]
     v3_tests = [test_workspace_registry, test_save_stage_report_no, test_brief_lib,
                 test_technique_lib, test_manager_log, test_single_audit,
-                test_ach_matrix, test_base_rate_downgrade]
+                test_ach_matrix, test_base_rate_downgrade, test_self_grill_brief]
     net_tests = [test_net_damodaran, test_net_research_list, test_net_usage_probe_small]
 
     groups = [
