@@ -1,0 +1,16 @@
+# 依赖与缓存
+node_modules/
+__pycache__/
+*.pyc
+
+# 报告产物（不入库：由编号存档制与档案系统自管）
+暂存区/
+分类区/
+
+# 新编号存档：产物不入库，编号账本保留版本
+reports/*
+!reports/_registry.json
+
+# skill 历史工作区（整体排除）与其一次性调试探针
+.opencode/skill/stock-analysis/data/
+.opencode/skill/stock-analysis/scripts/_rev_*

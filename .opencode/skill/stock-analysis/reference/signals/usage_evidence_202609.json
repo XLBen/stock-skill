@@ -1,0 +1,150 @@
+{
+ "_meta": {
+  "fetched_at": "2026-09-27T21:05:56",
+  "ttl_hours": 720,
+  "scope": "usage-evidence",
+  "source": "em-research-pdf"
+ },
+ "count": 20,
+ "parsed": 20,
+ "page_min": 8,
+ "methods": {
+  "dcf": {
+   "hits": 1,
+   "total": 20,
+   "rate": 0.05,
+   "samples": [
+    {
+     "org": "国信证券股份有限公司",
+     "title": "老牌汽车水泵龙头企业，服务器液冷泵新赛道迎来突破"
+    }
+   ]
+  },
+  "dividend": {
+   "hits": 5,
+   "total": 20,
+   "rate": 0.25,
+   "samples": [
+    {
+     "org": "中银国际证券股份有限公司",
+     "title": "油气双轮构筑壁垒，长协运力驱动成长"
+    },
+    {
+     "org": "开源证券股份有限公司",
+     "title": "公司深度报告：煤炭航母并购加码，盈利向上高股息红利龙头"
+    },
+    {
+     "org": "国金证券股份有限公司",
+     "title": "供给低增，AI货种打开需求空间"
+    }
+   ]
+  },
+  "ev_ebitda": {
+   "hits": 5,
+   "total": 20,
+   "rate": 0.25,
+   "samples": [
+    {
+     "org": "国信证券股份有限公司",
+     "title": "隶属五矿集团，钨产业链领军者"
+    },
+    {
+     "org": "国信证券股份有限公司",
+     "title": "老牌汽车水泵龙头企业，服务器液冷泵新赛道迎来突破"
+    },
+    {
+     "org": "中银国际证券股份有限公司",
+     "title": "油气双轮构筑壁垒，长协运力驱动成长"
+    }
+   ]
+  },
+  "relative": {
+   "hits": 15,
+   "total": 20,
+   "rate": 0.75,
+   "samples": [
+    {
+     "org": "国金证券股份有限公司",
+     "title": "“曙光初现”系列（二）爱旭股份：BC时代启幕，龙头有望迎来戴维斯双击"
+    },
+    {
+     "org": "开源证券股份有限公司",
+     "title": "北交所新股申购报告：南方乳业：贵州乳品龙头企业，入股光大乳业扩展省外市场"
+    },
+    {
+     "org": "华金证券股份有限公司",
+     "title": "新股覆盖研究：百瑞吉"
+    }
+   ]
+  },
+  "scenario": {
+   "hits": 2,
+   "total": 20,
+   "rate": 0.1,
+   "samples": [
+    {
+     "org": "国信证券股份有限公司",
+     "title": "老牌汽车水泵龙头企业，服务器液冷泵新赛道迎来突破"
+    },
+    {
+     "org": "国信证券股份有限公司",
+     "title": "肿瘤和自免领域全面布局，商业化与出海共同推进"
+    }
+   ]
+  },
+  "pe_quantile": {
+   "hits": 0,
+   "total": 20,
+   "rate": 0.0,
+   "samples": []
+  },
+  "sotp": {
+   "hits": 0,
+   "total": 20,
+   "rate": 0.0,
+   "samples": []
+  },
+  "ddm": {
+   "hits": 0,
+   "total": 20,
+   "rate": 0.0,
+   "samples": []
+  },
+  "cap_rate": {
+   "hits": 0,
+   "total": 20,
+   "rate": 0.0,
+   "samples": []
+  },
+  "cycle_mean": {
+   "hits": 0,
+   "total": 20,
+   "rate": 0.0,
+   "samples": []
+  },
+  "replacement": {
+   "hits": 0,
+   "total": 20,
+   "rate": 0.0,
+   "samples": []
+  },
+  "price_index": {
+   "hits": 0,
+   "total": 20,
+   "rate": 0.0,
+   "samples": []
+  },
+  "nvt": {
+   "hits": 0,
+   "total": 20,
+   "rate": 0.0,
+   "samples": []
+  },
+  "riskfree": {
+   "hits": 0,
+   "total": 20,
+   "rate": 0.0,
+   "samples": []
+  }
+ }
+}
