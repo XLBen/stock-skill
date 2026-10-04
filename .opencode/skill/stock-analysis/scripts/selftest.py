@@ -84,7 +84,7 @@ def test_cover_and_structure():
     expect('正文段落' in texts, '正文缺失')
     band = doc2.tables[0].cell(0, 0)
     shd = band._tc.find(dh.qn('w:tcPr') + '/' + dh.qn('w:shd'))
-    expect(shd is not None and shd.get(dh.qn('w:fill')) == '9E1B32', '封面顶部色带缺失')
+    expect(shd is not None and shd.get(dh.qn('w:fill')) == dh.NAVY_HEX, '封面顶部色带缺失')
     expect(band.text == '个股深度研究', '封面徽章缺失')
 
 
@@ -112,9 +112,9 @@ def test_table_callout_img():
     expect(len(t.rows) == 3, '表格维度错误')
     expect(t.rows[1].cells[0].text == '1', '表格数据错误')
     hdr_shd = t.rows[0].cells[0]._tc.find(dh.qn('w:tcPr') + '/' + dh.qn('w:shd'))
-    expect(hdr_shd is not None and hdr_shd.get(dh.qn('w:fill')) == '9E1B32', '表头应为酒红底')
+    expect(hdr_shd is not None and hdr_shd.get(dh.qn('w:fill')) == dh.NAVY_HEX, '表头应为深蓝底')
     zebra_shd = t.rows[2].cells[1]._tc.find(dh.qn('w:tcPr') + '/' + dh.qn('w:shd'))
-    expect(zebra_shd is not None and zebra_shd.get(dh.qn('w:fill')) == 'F3EFE6', '斑马纹应为暖灰')
+    expect(zebra_shd is not None and zebra_shd.get(dh.qn('w:fill')) == dh.ZEBRA, '斑马纹应为浅蓝灰')
     expect(t.rows[1].cells[0].paragraphs[0].runs[-1].font.bold, '首列应加粗')
     df = pd.DataFrame({'指标': ['营收'], '2024': [100.0], '2025': [None]})
     t2 = dh.table_from(doc, df)
@@ -173,6 +173,109 @@ def test_charts():
     expect(os.path.getsize(png) > 1000 and mpimg.imread(png).size > 0, '折线图无效')
     import matplotlib
     expect(matplotlib.get_backend().lower() == 'agg', '应为 Agg 后端')
+
+
+# ==================== v3.2：通俗外挂层 / 图表编号 / 逻辑示意图 ====================
+
+def _doc_all_text(doc):
+    out = [p.text for p in doc.paragraphs]
+    for tbl in doc.tables:
+        for row in tbl.rows:
+            for c in row.cells:
+                out.append(c.text or '')
+    return '\n'.join(out)
+
+
+def test_plain_layout_elements():
+    doc = dh.new_document()
+    dh.speedread_page(doc, '测试公司', '评级：增持｜现价 10.2 元｜合理区间 11~14 元',
+                      reasons=['理由一：量增', '理由二：价稳'],
+                      key_numbers=(['指标', '值'], [['EPS', '2.6']]),
+                      risks='最大风险：集采降价', bull='多头：新品放量', bear='空头：竞争加剧')
+    dh.h1(doc, '一、正文')
+    dh.para(doc, '专业论述段：EPS 2.6 元出自 forecast_lib。', indent=True)
+    dh.plain_note(doc, '每股赚 2.6 元，PE 就像按房租算回本年限。', analogy=True)
+    dh.so_what(doc, '按 12.4 元中枢折算，估值仍有空间。')
+    dh.faq_box(doc, '为什么营收涨、利润反降？', '费用涨得更快，见 3.2 节。')
+    dh.method_card(doc, 'DCF 现金流折现', what='把未来现金流折成今天的价值',
+                   why='现金流稳定可预测时最可靠', how_to_read='中枢高于现价=低估')
+    dh.table_intro(doc, '这张表想说明：盈利预测的量价假设')
+    dh.add_table(doc, ['指标', '2026'], [['EPS', '2.6']], caption='盈利预测速览')
+    dh.callout(doc, '评级：增持')
+    path = os.path.join(TMP, 'plain.docx')
+    dh.save(doc, path)
+    doc2 = dh.Document(path)
+    full = _doc_all_text(doc2)
+    for mark in ('30秒速读｜测试公司', '评级：增持', '理由1：', '看表先读：',
+                 '白话解读｜', '※ 比喻仅为助记', '所以呢｜', '小白问：', '答：',
+                 '方法卡｜DCF 现金流折现', '是什么', '为什么用它', '结果怎么读',
+                 '表1　速读关键数字', '表2　盈利预测速览', '最大风险：', '多头最强论点：',
+                 '空头最强论点：', '详细论证见后文'):
+        expect(mark in full, '通俗件缺失: %r' % mark)
+
+
+def test_fig_table_numbering():
+    ch.setup_cn()
+    png = os.path.join(TMP, 'num_fig.png')
+    ch.line_chart([1, 2], [1, 2], path=png)
+    doc = dh.new_document()
+    dh.img(doc, png, caption='营收趋势', source='公司公告')
+    dh.img(doc, png, caption='图5　历史股价')      # 已带编号：不重复编号
+    dh.img(doc, png, caption='毛利率走势')
+    dh.add_table(doc, ['A'], [['1']], caption='表A')
+    dh.add_table(doc, ['B'], [['2']], caption='表B')
+    st = dh._no_state(doc)
+    expect(st['fig'] == 6 and st['tab'] == 2,
+           '编号状态错误: %s' % st)  # 图1、图5(沿用)、图6；表1、表2
+    full = _doc_all_text(doc)
+    expect('图1　营收趋势（资料来源：公司公告）' in full, '自动图号缺失')
+    expect('图5　历史股价' in full, '已带图号应沿用')
+    expect('图6　毛利率走势' in full, '后续图号应接续')
+    expect('表1　表A' in full and '表2　表B' in full, '自动表号缺失')
+    lst = dh.fig_table_list(doc)
+    expect(lst is not None and len(lst.rows) == 6, '图表清单应含表头+5 项')
+    dh.reset_numbering(doc)
+
+
+def test_diagram():
+    ch.setup_cn()
+    p = os.path.join(TMP, 'diag.png')
+    ch.diagram([('上游\n原料', 5, 30, 22, 20), ('中游\n制造', 39, 30, 22, 20),
+                ('下游\n渠道', 73, 30, 22, 20)],
+               [(0, 1, '供货'), (1, 2, '销售'), (5, 8, 60, 20, '外部冲击')],
+               title='产业链位置', path=p, note='※ 仅为逻辑示意，非按比例绘制')
+    expect(os.path.getsize(p) > 1000, '逻辑示意图无效')
+
+
+def test_depth_plain_checks():
+    import check_report_depth as crd
+    p = os.path.join(TMP, 'plaincheck.docx')
+    doc = dh.new_document()
+    dh.para(doc, '一、正文')
+    dh.para(doc, '调研过程与盲点已列明。未查到项写明原因。' * 10)
+    dh.para(doc, '假设有效性：失效信号与发生概率齐备。' * 10)
+    dh.para(doc, '发散检验：历史类比/反事实/机会成本。' * 10)
+    dh.para(doc, '公司 EPS 2.6 元，营收 87.3 亿。')
+    dh.plain_note(doc, '每股赚 2.6 元。')        # 数字与专业层一致 → 合法
+    dh.so_what(doc, '折算市占率高达 999.7。')    # 999.7 凭空出现 → 违规
+    dh.save(doc, p)
+    r = crd.check_docx(p, min_words=10)
+    expect(any('通俗层数字与专业层不一致' in e for e in r['errors']),
+           '应检出通俗层数字越权: %s' % r['errors'])
+    expect(r['plain_blocks']['plain_texts'] >= 2, '外挂件应被统计')
+    # 一致 + 有速读页 → 不出通俗类错误
+    doc2 = dh.new_document()
+    dh.para(doc2, '30秒速读｜测试资产')
+    for t_ in ('调研过程与盲点已列明。未查到项写明原因。',
+               '假设有效性：失效信号与发生概率齐备。',
+               '发散检验：历史类比/反事实/机会成本。'):
+        dh.para(doc2, t_ * 10)
+    dh.plain_note(doc2, '一切照旧，没有新数字。')
+    p2 = os.path.join(TMP, 'plaincheck2.docx')
+    dh.save(doc2, p2)
+    r2 = crd.check_docx(p2, min_words=10)
+    expect(not any('通俗层' in e for e in r2['errors']), '一致时不应报通俗错误: %s' % r2['errors'])
+    expect(not any('速读页' in w for w in r2['warns']), '有速读页不应警告')
 
 
 # ==================== profile_lib：谓词求值 ====================
@@ -1070,7 +1173,21 @@ def test_manager_log():
     expect(st['checkpoints'] == 3 and st['escalated'] == 1, '统计应含转审计: %s' % st)
     try:
         ml.checkpoint('ch5', summary='x', questions=[{'q': str(i)} for i in range(4)], verdict='过关')
-        raise AssertionError('>3 问应报错')
+        raise AssertionError('专业问 >3 应报错')
+    except ValueError:
+        pass
+    # v3.2：专业 ≤3 + 通俗 ≤2
+    ml2 = ManagerLog(scope='v32', persona='P7')
+    ml2.checkpoint('ch1', summary='复述', questions=[
+        {'q': '87 亿哪来的', 'a': '00_cache/fin_x.json', 'kind': 'pro'},
+        {'q': '比喻 PE 像房租回本会误导吗', 'a': '已带仅为助记免责', 'kind': 'plain'},
+        {'q': '小白问：营收涨利润为何降', 'a': 'FAQ 框已答', 'kind': 'plain'}], verdict='过关')
+    try:
+        ml2.checkpoint('ch2', summary='x', questions=[
+            {'q': 'a', 'a': 'b', 'kind': 'plain'},
+            {'q': 'c', 'a': 'd', 'kind': 'plain'},
+            {'q': 'e', 'a': 'f', 'kind': 'plain'}], verdict='过关')
+        raise AssertionError('通俗问 >2 应报错')
     except ValueError:
         pass
 
@@ -1229,8 +1346,9 @@ def main():
     os.makedirs(TMP, exist_ok=True)
 
     doc_tests = [test_new_document, test_cover_and_structure, test_para_heading_styles,
-                 test_table_callout_img, test_setup_page, test_save_stage, test_save_json_meta]
-    chart_tests = [test_charts]
+                 test_table_callout_img, test_setup_page, test_save_stage, test_save_json_meta,
+                 test_plain_layout_elements, test_fig_table_numbering]
+    chart_tests = [test_charts, test_diagram]
     pred_tests = [test_eval_pred_basic, test_profile_from_answers]
     derive_tests = [test_derive_a_share, test_derive_real_estate, test_derive_crypto,
                     test_derive_collectible, test_derive_unknown_profile,
@@ -1238,7 +1356,7 @@ def main():
                     test_dispute_penalty_excluded, test_dispute_few_methods]
     lib_tests = [test_library_integrity, test_stats_baseline_universal]
     ops_tests = [test_cache_status, test_check_storage, test_check_delivery,
-                 test_check_report_depth]
+                 test_check_report_depth, test_depth_plain_checks]
     fc_tests = [test_forecast_equity, test_forecast_rental_and_balance]
     val_tests = [test_valuation_operators, test_valuation_crosscheck_flip]
     soc_tests = [test_socratic_flow, test_interpretation_adversary]

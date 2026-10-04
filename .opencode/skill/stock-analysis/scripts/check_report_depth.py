@@ -17,6 +17,10 @@
 [警告] 数字密度低：含具体数字的正文段落占比 <40%
 [警告] 裸（估）过多：>10 处（估）且无'概率依据/历史频率/发生概率'字样
 [警告] 缺盲点清单 / 缺基准·机会成本 / 缺反方章节关键词
+[错误] 通俗层数字与专业层不一致（v3.2）：白话解读/所以呢/小白问框内数字
+       未出现在正文或表格——通俗只是专业深度的外挂，无权引入新数字
+[警告] 缺速读页"30秒速读" / 通俗覆盖不足（方法卡/白话注/FAQ 数量低于阈值，
+       v3.2 layout_rules 要求；minimal 级无 PUA 由本检查兜底）
 [信息] 各章节字数分布（定位薄弱章节：补新论点，不是扩写）
 
 min_words 来源：--type 蓝图 id > --min 显式值 > 默认 20000。退出码：错误=1，仅警告=0。
@@ -29,6 +33,8 @@ import re
 import sys
 
 HEAD_RE = re.compile(r'^(第[一二三四五六七八九十]+[章节]|[一二三四五六七八九十]+[、\.]|\d+(\.\d+)*[、\.\s])')
+# v3.2 通俗外挂层标记（与 docx_helpers.PLAIN_MARKS 同源）
+PLAIN_MARKS = ('白话解读｜', '所以呢｜', '小白问：', '看表先读：', '方法卡｜')
 DEFAULT_MIN_WORDS = 20000
 LIB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                         'reference', 'library', 'blueprints.json')
@@ -314,9 +320,55 @@ def check_docx(path, min_words=None, rtype=None, trace_dir=None):
     if rtype in INVESTMENT_TYPES and not any(k in full for k in ('反方', '看空', '质询')):
         warns.append('缺反方论点/质询记录（应由苏格拉底质询记录驱动，禁止自写自答）')
 
+    # 11. 通俗外挂层（v3.2）：通俗层数字必须与专业层一致（通俗无权引入新数字）
+    all_texts = paras + _table_texts(doc)
+    plain_texts = [t for t in all_texts if any(m in t for m in PLAIN_MARKS)]
+    body_texts = [t for t in all_texts if not any(m in t for m in PLAIN_MARKS)]
+    body_nums = set()
+    for t in body_texts:
+        for m in NUM_RE.findall(re.sub(r'(19|20)\d{2}', ' ', t)):
+            try:
+                v = float(m)
+            except ValueError:
+                continue
+            if v >= 0.01:
+                body_nums.add(round(v, 2))
+    unmatched = []
+    for t in plain_texts:
+        if '秒' in t[:12]:   # "30秒速读"类框题不算数字载体
+            continue
+        for m in NUM_RE.findall(re.sub(r'(19|20)\d{2}', ' ', t)):
+            try:
+                v = float(m)
+            except ValueError:
+                continue
+            if v < 0.01:
+                continue
+            if not any(abs(v - b) <= max(0.051, abs(b) * 0.008) for b in body_nums):
+                unmatched.append((t[:24], m))
+    if unmatched:
+        errors.append('通俗层数字与专业层不一致: %d 处（白话/所以呢/小白问框内数字'
+                      '必须出自正文或表格，通俗层无权引入新数字）样例: %s'
+                      % (len(unmatched), unmatched[:3]))
+
+    # 12. 速读页与通俗覆盖（v3.2 排版件；minimal 级无 PUA，由本检查兜底）
+    if '30秒速读' not in full:
+        warns.append('缺速读页：封面后第一页应有"30秒速读"一页纸（speedread_page）')
+    n_cards = full.count('方法卡｜')
+    n_notes = sum(full.count(m) for m in ('白话解读｜', '所以呢｜'))
+    n_faq = full.count('小白问：')
+    if rtype in INVESTMENT_TYPES and (n_cards < 2 or n_notes < 5):
+        warns.append('通俗覆盖不足: 方法卡 %d 张（建议≥2，每个激活技法首现处挂卡）、'
+                     '白话/所以呢 %d 条（建议≥5，承重论述段逐段外挂）——技法全保留，'
+                     '呈现按 layout_rules' % (n_cards, n_notes))
+    if rtype in INVESTMENT_TYPES and n_faq < 1:
+        warns.append('缺 FAQ 小白问答框（管理员扮问产出，每报告≥1）')
+
     return {'total_chars': total, 'tables': len(doc.tables),
             'images': n_img, 'empty': empty, 'per_section': per_section,
             'tag_count': n_tags, 'digit_density': round(density, 4),
+            'plain_blocks': {'method_cards': n_cards, 'plain_notes': n_notes,
+                             'faq': n_faq, 'plain_texts': len(plain_texts)},
             'errors': errors, 'warns': warns}
 
 
@@ -330,9 +382,10 @@ def main():
     trace_dir = sys.argv[sys.argv.index('--trace-dir') + 1] if '--trace-dir' in sys.argv else None
     r = check_docx(path, minw, rtype, trace_dir)
     print('== %s ==' % os.path.basename(path))
-    print('   字数=%d 表=%d 图=%d 证据标签=%d 数字密度=%.0f%% 空章节=%s'
+    print('   字数=%d 表=%d 图=%d 证据标签=%d 数字密度=%.0f%% 空章节=%s 通俗件=%s'
           % (r['total_chars'], r['tables'], r['images'], r['tag_count'],
-             (r['digit_density'] or 0) * 100, r['empty'] or '无'))
+             (r['digit_density'] or 0) * 100, r['empty'] or '无',
+             r.get('plain_blocks', {})))
     print('   章节字数分布（薄弱章节→补新论点+新数据源，非扩写）:')
     for t, w in r['per_section']:
         flag = '  <-- 薄' if 0 < w < 600 else ''

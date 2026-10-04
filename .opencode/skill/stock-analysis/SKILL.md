@@ -3,9 +3,11 @@ name: stock-analysis
 description: 泛金融报告分析全流程 skill（v3.1 全自治流水线 + self-grill）。凡用户要求写/出/修改任何报告（投资研究/个股深度/资产研究/估值分析/财报解读/回测/总结报告，股票/基金/利率/地产/加密/收藏品等任意对象）即使用本 skill；亦覆盖行情/财务/研报数据抓取、网格/定投回测、板块筛选、商誉减值、指增/红利/AH 溢价研究与 Word（.docx）报告生成，及 /ask 随手一问的 self-grill 零人工路线。核心：grill 多波次需求拷问（唯一人工门）→ 8 维画像推导方法集与报告蓝图 → 分析技法注册表按需激活 → 盈利预测与估值确定性算子（数字由代码算）→ PUA 管理员逐章审问 → 单次审计（两会话合一，四道防掉队闸）→ 编号存档与 /drill 追问复盘闭环。
 ---
 
-# 股票分析（Stock Analysis）v3.1 · 全自治流水线
+# 股票分析（Stock Analysis）v3.2 · 全自治流水线
 
 泛金融报告 skill：**北极星是一份可用的报告**。用户只在 grill 时在场一次（批准 brief），之后流水线无人值守直到交付；/ask 路线连这一次也省——两个子代理自我拷问推导需求。任何对象（A股/房价/比特币/手办）先 grill 需求拷问 + 8 维画像，规则库（reference/library/，JSON 数据驱动）推导方法集/数据源/报告蓝图；**预测与估值数字由算子库计算，叙事由 LLM 写**；写作过程受 PUA 管理员逐章审问，终稿经**单次审计**（两会话合一，严格度不降级）；结论按**报告编号**自动存档，`/drill 编号` 随时回溯拷问，第 N 份报告站在第 N-1 份肩上。
+
+**v3.2 通俗外挂层**（2026-10-04 grill 批准改版）：报告面向**非专业金融从业者**——通俗只是专业深度的外挂解释层，**判断权归专业层**（通俗层数字与专业层不一致 = QA FAIL）。深蓝投行版式（高盛/大摩参照）+ 封面后 30秒速读一页纸 + 承重论述段逐段【白话解读】+【所以呢】框 + FAQ 小白问答 + 三段式方法卡 + 表前导语 + >10行长表转图 + 图表编号与清单；**技法注册表全保留**（每挂点 ≤3 激活、premortem 强制等规则不变），只是呈现更好读。排版规则集中在 blueprints.json 顶层 `layout_rules` 与 docx-conventions.md。
 
 ## 命令（项目级 .opencode/command/）
 
@@ -25,9 +27,11 @@ description: 泛金融报告分析全流程 skill（v3.1 全自治流水线 + se
 
 | 级别 | 蓝图 | 流程 |
 |---|---|---|
-| full | equity_deep_8ch / asset_research / rental_asset | 单次审计 + PUA(P9 三问) + premortem/base_rate 强制 + 技法挂点开放 |
-| standard | theme_quant / update_report | 单次审计 + PUA(P7 两问) + base_rate 强制 |
-| minimal | strategy_manual / educational / decision_report | 仅基础分析→报告→QA（无审计无 PUA） |
+| full | equity_deep_8ch / asset_research / rental_asset | 单次审计 + PUA(P9 三问+通俗≤2问) + premortem/base_rate 强制 + 技法挂点开放 |
+| standard | theme_quant / update_report | 单次审计 + PUA(P7 两问+通俗≤2问) + base_rate 强制 |
+| minimal | strategy_manual / educational / decision_report | 仅基础分析→报告→QA（无审计无 PUA；v3.2 排版件全量套用，通俗质量由 QA 硬检兜底） |
+
+**排版件全级别统一**（v3.2）：速读页/逐段白话注/所以呢框/FAQ/方法卡/表前导语/图表编号清单对所有蓝图生效（见 blueprints.json `layout_rules`）；minimal 级 FAQ 由写手按读者=非专业者画像预判，full/standard 级由 PUA 管理员扮问补充。
 
 ## 全自治流水线（10 步；brief 批准后无人值守，异常走自动归宿表绝不悬停）
 
@@ -37,7 +41,7 @@ description: 泛金融报告分析全流程 skill（v3.1 全自治流水线 + se
 4. **基础分析 + Premortem**（技法挂点"预测前"）：行业/业务/财务质量论断配可溯源数字；full 级强制事前验尸（"12 个月后被打脸的死因清单"）喂风险章与假设有效性表。
 5. **预测建模**（心脏，LLM 禁手算）：`forecast_lib.build_equity_forecast / build_rental_forecast / build_supply_demand_balance`；每项假设 `Assumption(value, basis, tag, probability, base_rate_ref)`——增长类 [推断] 假设缺基础比率锚自动降级 [观点]（base_rate_downgrades 落盘）；技法分析师子代理可并行（互不可见）。
 6. **估值**：`valuation_lib.run_derived` + `weighted_synthesis`（权重给理由，中枢禁手算）+ `crosscheck`（>1% 说明取舍）+ `flip_point`；分歧触发时 `profile_lib.ach_matrix`（按最少不一致排序）；情景挂点可激活 scenario_2x2/tornado。
-7. **论点树 + 顺序分章写作 + PUA 逐章审问**：`thesis_lib.build_thesis`（结论→3~5 承重柱→证据映射）落 `40_thesis/`；章节写手子代理**严格顺序**写作（禁自行抓数，只消费 FACTS+算子输出；输入包=章节spec+树+相关数据文件）落 `60_draft/`；**每章交付后自动 desk_chief.md 审问**（P7/P9 分级，≤3 问：数字哪来的/So what/删了这章结论还立得住吗）→ `manager_log.ManagerLog.checkpoint` 落 `50_sessions/manager_log.json`；驳回自动重写（同章 ≤1 次），二次驳回转审计未决。
+7. **论点树 + 顺序分章写作 + PUA 逐章审问**：`thesis_lib.build_thesis`（结论→3~5 承重柱→证据映射）落 `40_thesis/`；封面后自动生成 **speedread_page 30秒速读一页纸**（v3.2）；章节写手子代理**严格顺序**写作（禁自行抓数，只消费 FACTS+算子输出；输入包=章节spec+树+相关数据文件+layout_rules；**排版件强制**：承重段逐段 plain_note 白话注、每章 ≥1 so_what + ≥1 faq_box、技法首现挂 method_card、表前 table_intro、>10 行表转图、图表编号自动+附录清单）落 `60_draft/`；**每章交付后自动 desk_chief.md 审问**（P7/P9 分级，专业 ≤3 问 + 通俗 ≤2 问 kind='plain'：比喻失真检验+扮小白 FAQ；≤5 问合计）→ `manager_log.ManagerLog.checkpoint` 落 `50_sessions/manager_log.json`；驳回自动重写（同章 ≤1 次），二次驳回转审计未决。
 8. **单次审计（两会话合一，硬上限 2 轮）**：`dump_doc_text` 全文 → single_auditor.md 子代理（**全新上下文，唯一看全稿的对抗角色**；承重论点=树承重柱+核心结论，从 thesis.json 取不手挑；火力对齐 brief.failure_criteria）→ `socratic_lib.new_session(mode='single_audit')`；R1 攻防（受理质询+defend data/revise/unknown，revise 带 assumption_ref 触发 **H1 回流**：重跑 forecast→估值→更新树）→ R2 只核验修改处与未决。**四道防掉队闸（QA 硬检查）**：`audit_readiness`（R1 ≥4 条 full/≥3 条 standard，full 必含替代解读或隐含前提类）/ `audit_coverage`（每承重柱 ≥1 受理质询或 `exempt_pillar` 书面免检）/ `audit_gate`（高严重度质询无四归宿 → 禁止终稿）/ `audit_checklist` 自检进附录。会话落 `50_sessions/`。
 9. **QA 质检**（0 错误才通过）：`check_report_depth`（含 brief.key_concerns 必须被回答）/ `usage_probe` / `cache_status --strict` / `check_delivery`（编号双写+注册表一致性）/ `render_check`；附录=溯源表+审计统计（含三闸自检）+管理员审问统计+数据截止表+新引入技法标注（`technique_lib.techniques_used`）。
 10. **编号归档 + 完成摘要**：`save_stage(doc, 报告名, subject, review, report_no=编号)`——历史版落 `70_delivered/{日期}_{编号}_{名}.docx` + 最新版双写 `reports/所有报告/{编号}_{报告名}.docx`，注册表置 delivered，review 自动落 dossier；`flow_log.save(workspace_lib.flow_log_path(编号))`；输出完成摘要（编号/评级区间/审计统计/PUA 统计/生成成本/新引入技法//drill 提示）。**异常归宿**：轮次/预算超限 → `workspace_lib.blocked(编号, 卡点, '/report resume 编号')`，绝不悬停等人。
@@ -55,6 +59,24 @@ blf.record_wave(b, questions=[{'id':'q1','q':'报告类型？','options':['深�
                 decisions=[{'field':'report_type','value':'深度研究'}])
 stop, why = blf.termination_check(b); ok, missing = blf.validate_brief(b)
 blf.approve(b); blf.save_brief(b, wl.brief_path(no))
+
+# 1b. v3.2 排版件（docx_helpers 深蓝投行风 + 通俗外挂层）
+from docx_helpers import *
+doc = new_document()
+speedread_page(doc, 'XX股份', '评级：增持｜现价 10.2｜区间 11~14 元',
+               reasons=['理由一', '理由二'], key_numbers=(['指标','值'], [['EPS','2.6']]),
+               fig_path='fig1.png', risks='…', bull='…', bear='…')
+para(doc, '专业论述段……', indent=True)
+plain_note(doc, '白话解读：这段说的是……', analogy=True)   # 逐段外挂+比喻免责
+so_what(doc, '所以呢：这意味着……')                        # 决策含义
+faq_box(doc, 'PE 是什么？', '市场愿意为 1 元年利润付多少钱…')
+method_card(doc, 'DCF', what='…', why='…', how_to_read='…')  # 三段式方法卡
+table_intro(doc, '这张表想说明：…'); add_table(doc, h, rows, caption='关键数据')
+img(doc, 'fig1.png', caption='营收趋势', source='公司公告')    # 自动 图N
+fig_table_list(doc)                                          # 附录图表清单
+from chart_helpers import diagram                           # 逻辑示意图
+diagram([('上游\n原料',5,30,22,20),('中游\n制造',39,30,22,20)],
+        [(0,1,'供货'),(1,2,'销售')], title='产业链位置', path='fig_chain.png')
 
 # 2. 技法注册表（按需激活 + 自动扩充）
 import technique_lib as tcl
@@ -96,6 +118,7 @@ dh.save_stage(doc, '中药行业深度研究报告.docx', subject='中药行业'
 - **铁律五：审计简化不降级**——单次审计四道闸（火力/覆盖/门禁/自检）是硬检查，高严重度质询无归宿禁止终稿
 - **铁律六：子代理防火墙**——主上下文纯编排不写分析文本；侦察兵不知论点、写手禁抓数、技法分析师并行互不可见、审计员全新上下文；输入包只传已登记文件路径
 - **铁律七：文件即记忆**——一切产物落工作区并 register_file 登记；导航只读 _registry.json + WORKSPACE.md，禁全库扫描；跨工作区互读禁止（更新报告例外=inherited 显式指针）
+- **铁律八：通俗=专业深度的外挂（v3.2）**——通俗层（白话注/所以呢/FAQ/比喻）只是专业深度的解释层，判断权归专业层；比喻必带"仅为助记"免责；通俗层数字与专业层不一致 = QA FAIL；禁以"太通俗"为由降专业深度，也禁以"太专业"为由删通俗件
 - 方法必须来自推导：地产禁 PE 分位；比特币/手办禁 DCF/PE；无路可走 stats_baseline 标注"统计性描述"
 - 技法不全部使用：每挂点 ≤3 且必填理由；always_on 不可跳过；注册表缺口走 propose_auto（机构方法论>教材·论文>GitHub≥100⭐）
 - 东财批量 ≤100、腾讯 K 线 count≤800；抓取限速 0.3s、重试 3；缓存幂等覆盖

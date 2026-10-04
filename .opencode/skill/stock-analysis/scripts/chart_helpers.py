@@ -147,3 +147,65 @@ def waterfall(x, changes, totals=None, title='', path='fig_water.png',
     ax.set_xticks(range(n)); ax.set_xticklabels(x, rotation=30, ha='right')
     ax.set_title(title, fontsize=13, fontweight='bold')
     _save(fig, path)
+
+
+# ==================== v3.2 简洁逻辑示意图（深蓝投行风） ====================
+
+NAVY_C = '#14315C'
+STEEL_C = '#5B87C6'
+SAND_C = '#B08D4F'
+
+
+def diagram(boxes, arrows=(), title='', path='fig_diagram.png', figsize=(10, 5),
+            box_color=NAVY_C, alt_color=STEEL_C, note=None, xlim=(0, 100),
+            ylim=(0, 60)):
+    """简洁逻辑示意图（v3.2 新能力）：几何形状+箭头+中文标签，解释文字讲的道理。
+
+    boxes: [(label, x, y, w, h)]，坐标为 xlim/ylim 相对画布（x,y 为左下角），
+           label 支持 '\\n' 换行；奇数序号盒用 alt_color 交替。
+    arrows: [(i, j, label)] 盒索引对（箭头从盒 i 中心指向盒 j 中心），
+            或 (x1, y1, x2, y2, label) 绝对坐标五元组；label 可省略。
+    note: 画布底部灰字注释（如"※ 仅为逻辑示意，非按比例绘制"）。
+    例（产业链）：diagram([('上游\\n原料', 5, 30, 22, 20), ('中游\\n制造', 39, 30, 22, 20),
+                          ('下游\\n渠道', 73, 30, 22, 20)],
+                         [(0, 1, '供货'), (1, 2, '销售')], title='产业链位置',
+                         path='fig_chain.png')
+    """
+    from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+    fig, ax = plt.subplots(figsize=figsize)
+    centers = []
+    for k, (label, x, y, w, h) in enumerate(boxes):
+        color = box_color if k % 2 == 0 else alt_color
+        patch = FancyBboxPatch((x, y), w, h,
+                               boxstyle='round,pad=0.6,rounding_size=1.5',
+                               linewidth=0, facecolor=color)
+        ax.add_patch(patch)
+        ax.text(x + w / 2, y + h / 2, label, ha='center', va='center',
+                fontsize=11, color='white', fontweight='bold', linespacing=1.4)
+        centers.append((x + w / 2, y + h / 2, x, y, w, h))
+    for a in arrows:
+        if len(a) == 2 or (len(a) == 3 and all(isinstance(v, int) for v in a[:2])):
+            i, j = a[0], a[1]
+            label = a[2] if len(a) == 3 else ''
+            x1, y1, _, _, w1, h1 = centers[i]
+            x2, y2, _, _, w2, h2 = centers[j]
+            dx, dy = x2 - x1, y2 - y1
+            d = (dx ** 2 + dy ** 2) ** 0.5 or 1.0
+            x1 += dx / d * (w1 / 2 + 1.5); y1 += dy / d * (h1 / 2 + 1.5)
+            x2 -= dx / d * (w2 / 2 + 1.5); y2 -= dy / d * (h2 / 2 + 1.5)
+        else:
+            x1, y1, x2, y2 = a[0], a[1], a[2], a[3]
+            label = a[4] if len(a) > 4 else ''
+        ar = FancyArrowPatch((x1, y1), (x2, y2), arrowstyle='-|>',
+                             mutation_scale=14, linewidth=1.6, color=SAND_C)
+        ax.add_patch(ar)
+        if label:
+            ax.text((x1 + x2) / 2, (y1 + y2) / 2 + 2, label, ha='center',
+                    va='bottom', fontsize=9.5, color=NAVY_C)
+    if title:
+        ax.set_title(title, fontsize=13, fontweight='bold', color=NAVY_C)
+    if note:
+        ax.text(xlim[0] + 1, ylim[0] + 1, note, fontsize=8.5, color='#595959')
+    ax.set_xlim(*xlim); ax.set_ylim(*ylim)
+    ax.axis('off')
+    _save(fig, path)

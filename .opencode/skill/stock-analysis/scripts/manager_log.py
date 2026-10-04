@@ -5,7 +5,8 @@
 审问写作代理，checkpoint() 落盘。裁决：过关 / 补证据 / 驳回重写。
 
 规则：
-- 每章每轮审问 ≤3 问（数字哪来的 / So what / 删掉这章结论还立得住吗）
+- 每章每轮审问 ≤5 问：专业问 ≤3（数字哪来的 / So what / 删掉这章结论还立得住吗）
+  + 通俗问 ≤2（kind='plain'：比喻失真检验 / 扮小白 FAQ，v3.2 通俗外挂层质检）
 - 驳回重写自动执行，同章最多 1 次；二次驳回挂 escalated 转单次审计未决（不悬停等人）
 - stats() 输出进附录"管理员审问统计表"（docx_helpers.manager_stats_table）与完成摘要
 
@@ -25,7 +26,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fetch_lib import save_json, load_json  # noqa: E402
 
 VERDICTS = ('过关', '补证据', '驳回重写')
-MAX_QUESTIONS = 3
+MAX_QUESTIONS = 5          # v3.2：专业 ≤3 + 通俗 ≤2
+MAX_PLAIN_QUESTIONS = 2
 MAX_REWRITES = 1
 
 
@@ -39,9 +41,12 @@ class ManagerLog(object):
         """记录一次审问。同章二次驳回自动转审计（escalated），流水线不悬停。"""
         if verdict not in VERDICTS:
             raise ValueError('verdict 必须是 %s' % (VERDICTS,))
-        if len(questions or []) > MAX_QUESTIONS:
-            raise ValueError('每章每轮审问 ≤%d 问（管理员不做深度对抗，那是审计的事）'
-                             % MAX_QUESTIONS)
+        qs = questions or []
+        n_plain = sum(1 for q in qs if (q.get('kind') or 'pro') == 'plain')
+        n_pro = len(qs) - n_plain
+        if len(qs) > MAX_QUESTIONS or n_plain > MAX_PLAIN_QUESTIONS or n_pro > 3:
+            raise ValueError('每章每轮审问 专业≤3 + 通俗≤2（合计 ≤%d 问）；'
+                             '管理员不做深度对抗，那是审计的事' % MAX_QUESTIONS)
         if not (summary or '').strip():
             raise ValueError('summary 必填：写作代理须先复述本章核心论点+关键数字')
         rewrites = sum(1 for c in self.checkpoints

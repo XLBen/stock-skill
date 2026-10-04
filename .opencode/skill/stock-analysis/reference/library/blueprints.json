@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "note": "报告蓝图库 v2→v3（2026-10 对齐全自治流水线）：对齐专业研究范式（券商深度研报/另类资产研究/地产REIT研究/量化策略研究）。章节 spec 以【证据对象】枚举为准——QA 按证据对象清点，字数仅参考；字数不足时补新论点+新数据源，禁止扩写旧文本注水。投资类蓝图含常设反方章节（由单次审计记录驱动，含 PUA escalated 未决）与附录审计统计/管理员审问统计/数字溯源表。技法挂点见 techniques.json（按需激活）。样式令牌全局统一见 docx-conventions.md。optional_sections.when 为判定条件（dispute.trigger / dossier.prior 等）。",
+  "version": 3,
+  "note": "报告蓝图库 v2→v3（2026-10 对齐全自治流水线）：对齐专业研究范式（券商深度研报/另类资产研究/地产REIT研究/量化策略研究）。章节 spec 以【证据对象】枚举为准——QA 按证据对象清点，字数仅参考；字数不足时补新论点+新数据源，禁止扩写旧文本注水。投资类蓝图含常设反方章节（由单次审计记录驱动，含 PUA escalated 未决）与附录审计统计/管理员审问统计/数字溯源表。技法挂点见 techniques.json（按需激活）。样式令牌全局统一见 docx-conventions.md。optional_sections.when 为判定条件（dispute.trigger / dossier.prior 等）。 ｜ v3.2（2026-10-04 grill 批准）：新增顶层 layout_rules 通俗外挂层排版规则（能图不表优先级/逐段白话注/三段式方法卡/表前导语/>10行转图/图表编号清单/30秒速读页），所有蓝图含 speedread 章节，技法注册表与流程闸门不变。",
   "evidence_tags": {
     "[实证]": "可溯源到数据缓存或 results_*.json 的数字/事实（附录溯源表可回查）",
     "[推断]": "由实证数字经显式逻辑推出的判断（必须给出推理链）",
@@ -18,6 +18,11 @@
           "id": "cover",
           "name": "封面",
           "spec": "黑体26pt标题+副标题+灰色meta（日期/来源/标的）+红色免责声明，5~6空行分隔，后分页；本节约 0 字（不计字数）"
+        },
+        {
+          "id": "speedread",
+          "name": "30秒速读",
+          "spec": "【速读一页纸】封面后第一页，用 docx_helpers.speedread_page 渲染：①结论区（评级/现价/合理区间/相对空间 callout）②理由速览3~5条（论点树承重柱一句话版，每条可溯源数字保留）③关键数字小表（评级锚定数字≤6行）④主图1张（股价走势/估值带/关键趋势，图注带来源）⑤最大风险一句+多头/空头最强论点各一条（防单边叙事）。一页放完，页尾'详细论证见后文各章'；本节约 0 字（不计字数）。"
         },
         {
           "id": "summary",
@@ -116,7 +121,8 @@
       ],
       "min_words": 20000,
       "min_words_note": "正文总字数下限（参考指标）。字数不足时必须补新论点+新数据源（新抓取/新视角/新对比），禁止扩写现有文本注水",
-      "flow": "full"
+      "flow": "full",
+      "layout_rules": "{priority|plain_layer|method_card|table_rules|charts|speedread|style}（见顶层 layout_rules，v3.2）"
     },
     {
       "id": "asset_research",
@@ -129,6 +135,11 @@
           "id": "cover",
           "name": "封面",
           "spec": "标题+副标题+meta（日期/数据来源/标的）+红色免责；本节约 0 字（不计字数）"
+        },
+        {
+          "id": "speedread",
+          "name": "30秒速读",
+          "spec": "【速读一页纸】封面后第一页，用 docx_helpers.speedread_page 渲染：①结论区（评级/现价/合理区间/相对空间 callout）②理由速览3~5条（论点树承重柱一句话版，每条可溯源数字保留）③关键数字小表（评级锚定数字≤6行）④主图1张（股价走势/估值带/关键趋势，图注带来源）⑤最大风险一句+多头/空头最强论点各一条（防单边叙事）。一页放完，页尾'详细论证见后文各章'；本节约 0 字（不计字数）。"
         },
         {
           "id": "summary",
@@ -222,7 +233,8 @@
       ],
       "min_words": 20000,
       "min_words_note": "正文总字数下限（参考指标）。字数不足时补新论点+新数据源，禁止注水",
-      "flow": "full"
+      "flow": "full",
+      "layout_rules": "{priority|plain_layer|method_card|table_rules|charts|speedread|style}（见顶层 layout_rules，v3.2）"
     },
     {
       "id": "rental_asset",
@@ -235,6 +247,11 @@
           "id": "cover",
           "name": "封面",
           "spec": "标题+副标题+meta（日期/数据来源/标的）+红色免责；本节约 0 字（不计字数）"
+        },
+        {
+          "id": "speedread",
+          "name": "30秒速读",
+          "spec": "【速读一页纸】封面后第一页，用 docx_helpers.speedread_page 渲染：①结论区（评级/现价/合理区间/相对空间 callout）②理由速览3~5条（论点树承重柱一句话版，每条可溯源数字保留）③关键数字小表（评级锚定数字≤6行）④主图1张（股价走势/估值带/关键趋势，图注带来源）⑤最大风险一句+多头/空头最强论点各一条（防单边叙事）。一页放完，页尾'详细论证见后文各章'；本节约 0 字（不计字数）。"
         },
         {
           "id": "summary",
@@ -327,7 +344,8 @@
       ],
       "min_words": 20000,
       "min_words_note": "正文总字数下限（参考指标）。字数不足时补新论点+新数据源，禁止注水",
-      "flow": "full"
+      "flow": "full",
+      "layout_rules": "{priority|plain_layer|method_card|table_rules|charts|speedread|style}（见顶层 layout_rules，v3.2）"
     },
     {
       "id": "theme_quant",
@@ -340,6 +358,11 @@
           "id": "cover",
           "name": "封面",
           "spec": "标题+meta+红色免责；本节约 0 字（不计字数）"
+        },
+        {
+          "id": "speedread",
+          "name": "30秒速读",
+          "spec": "【速读一页纸】封面后第一页，用 docx_helpers.speedread_page 渲染：①结论区（评级/现价/合理区间/相对空间 callout）②理由速览3~5条（论点树承重柱一句话版，每条可溯源数字保留）③关键数字小表（评级锚定数字≤6行）④主图1张（股价走势/估值带/关键趋势，图注带来源）⑤最大风险一句+多头/空头最强论点各一条（防单边叙事）。一页放完，页尾'详细论证见后文各章'；本节约 0 字（不计字数）。"
         },
         {
           "id": "summary",
@@ -425,7 +448,8 @@
       ],
       "min_words": 20000,
       "min_words_note": "正文总字数下限（参考指标）。字数不足时补新论点+新数据源，禁止注水",
-      "flow": "standard"
+      "flow": "standard",
+      "layout_rules": "{priority|plain_layer|method_card|table_rules|charts|speedread|style}（见顶层 layout_rules，v3.2）"
     },
     {
       "id": "strategy_manual",
@@ -438,6 +462,11 @@
           "id": "cover",
           "name": "封面",
           "spec": "标题+适用范围+meta；本节约 0 字（不计字数）"
+        },
+        {
+          "id": "speedread",
+          "name": "30秒速读",
+          "spec": "【速读一页纸】封面后第一页，用 docx_helpers.speedread_page 渲染：①结论区（评级/现价/合理区间/相对空间 callout）②理由速览3~5条（论点树承重柱一句话版，每条可溯源数字保留）③关键数字小表（评级锚定数字≤6行）④主图1张（股价走势/估值带/关键趋势，图注带来源）⑤最大风险一句+多头/空头最强论点各一条（防单边叙事）。一页放完，页尾'详细论证见后文各章'；本节约 0 字（不计字数）。"
         },
         {
           "id": "m1",
@@ -498,7 +527,8 @@
       ],
       "min_words": 15000,
       "min_words_note": "正文总字数下限（参考指标，本类型已差异化）。字数不足时补新论点+新数据源，禁止注水",
-      "flow": "minimal"
+      "flow": "minimal",
+      "layout_rules": "{priority|plain_layer|method_card|table_rules|charts|speedread|style}（见顶层 layout_rules，v3.2）"
     },
     {
       "id": "educational",
@@ -511,6 +541,11 @@
           "id": "cover",
           "name": "封面",
           "spec": "标题+一句定位+meta；本节约 0 字（不计字数）"
+        },
+        {
+          "id": "speedread",
+          "name": "30秒速读",
+          "spec": "【速读一页纸】封面后第一页，用 docx_helpers.speedread_page 渲染：①结论区（评级/现价/合理区间/相对空间 callout）②理由速览3~5条（论点树承重柱一句话版，每条可溯源数字保留）③关键数字小表（评级锚定数字≤6行）④主图1张（股价走势/估值带/关键趋势，图注带来源）⑤最大风险一句+多头/空头最强论点各一条（防单边叙事）。一页放完，页尾'详细论证见后文各章'；本节约 0 字（不计字数）。"
         },
         {
           "id": "e1",
@@ -555,7 +590,8 @@
       ],
       "min_words": 15000,
       "min_words_note": "正文总字数下限（参考指标，本类型已差异化）。字数不足时补新论点+新数据源，禁止注水",
-      "flow": "minimal"
+      "flow": "minimal",
+      "layout_rules": "{priority|plain_layer|method_card|table_rules|charts|speedread|style}（见顶层 layout_rules，v3.2）"
     },
     {
       "id": "decision_report",
@@ -568,6 +604,11 @@
           "id": "cover",
           "name": "封面",
           "spec": "标题+决策问题+meta；本节约 0 字（不计字数）"
+        },
+        {
+          "id": "speedread",
+          "name": "30秒速读",
+          "spec": "【速读一页纸】封面后第一页，用 docx_helpers.speedread_page 渲染：①结论区（评级/现价/合理区间/相对空间 callout）②理由速览3~5条（论点树承重柱一句话版，每条可溯源数字保留）③关键数字小表（评级锚定数字≤6行）④主图1张（股价走势/估值带/关键趋势，图注带来源）⑤最大风险一句+多头/空头最强论点各一条（防单边叙事）。一页放完，页尾'详细论证见后文各章'；本节约 0 字（不计字数）。"
         },
         {
           "id": "d1",
@@ -635,7 +676,8 @@
       ],
       "min_words": 10000,
       "min_words_note": "正文总字数下限（参考指标，本类型已差异化）。字数不足时补新论点+新数据源，禁止注水",
-      "flow": "minimal"
+      "flow": "minimal",
+      "layout_rules": "{priority|plain_layer|method_card|table_rules|charts|speedread|style}（见顶层 layout_rules，v3.2）"
     },
     {
       "id": "update_report",
@@ -649,6 +691,11 @@
           "id": "cover",
           "name": "封面",
           "spec": "标题含\"更新\"字样与基准日+meta；本节约 0 字（不计字数）"
+        },
+        {
+          "id": "speedread",
+          "name": "30秒速读",
+          "spec": "【速读一页纸】封面后第一页，用 docx_helpers.speedread_page 渲染：①结论区（评级/现价/合理区间/相对空间 callout）②理由速览3~5条（论点树承重柱一句话版，每条可溯源数字保留）③关键数字小表（评级锚定数字≤6行）④主图1张（股价走势/估值带/关键趋势，图注带来源）⑤最大风险一句+多头/空头最强论点各一条（防单边叙事）。一页放完，页尾'详细论证见后文各章'；本节约 0 字（不计字数）。"
         },
         {
           "id": "summary",
@@ -701,7 +748,17 @@
         "结论更新给新旧区间对比与变化原因"
       ],
       "min_words": 8000,
-      "min_words_note": "更新报告字数下限显著低于全量报告（增量为本）。字数不足时补新数据，禁止把前次报告内容复制过来凑字数"
+      "min_words_note": "更新报告字数下限显著低于全量报告（增量为本）。字数不足时补新数据，禁止把前次报告内容复制过来凑字数",
+      "layout_rules": "{priority|plain_layer|method_card|table_rules|charts|speedread|style}（见顶层 layout_rules，v3.2）"
     }
-  ]
+  ],
+  "layout_rules": {
+    "priority": "能图不表、能表不文字墙：写作时优先用图（数据图/逻辑示意图）表达，其次紧凑表格，最后才是大段文字；QA 按此抽查",
+    "plain_layer": "通俗=专业深度的外挂解释层，判断权归专业层：① 承重论述段（≥3 行专业论证）后逐段外挂 plain_note 白话注块；② 每章 ≥1 个 so_what 所以呢框（关键结论对钱袋意味着什么）；③ 每章 ≥1 个 faq_box 小白问答（PUA 管理员扮问产出，minimal 级由写手按读者画像预判）；④ 生活化比喻必须 analogy=True 带'仅为助记'免责；⑤ 通俗层数字必须与专业层一致（QA 硬检查，无权引入新数字）",
+    "method_card": "每个估值方法/激活技法首次出现处挂 method_card 三段式方法卡（是什么/为什么用它/结果怎么读）；技法注册表协议不变，只加讲解",
+    "table_rules": "① 表前必配 table_intro 导语（这张表想说明什么）；② 正文表格 >10 行转图（bar/hbar/heatmap）并全表移附录；③ 正文保留表 ≤8 行，列宽收敛关键列；④ 附录长表不设限",
+    "charts": "每章按内容自然配图但倾向极大扩展制图：数据图用 chart_helpers；业务链/竞争格局/方法论等定性逻辑用 chart_helpers.diagram 简洁示意图（几何+箭头+中文，note 标'仅为逻辑示意'）；图/表自动连续编号（图N/表N），附录含图表清单（fig_table_list）",
+    "speedread": "封面后第一页为 speedread_page 30秒速读一页纸：结论区（评级/区间）+理由速览（论点树承重柱一句话版）+关键数字小表+主图1张+风险与多空各一条；无目录页",
+    "style": "docx_helpers v3.2 深蓝投行风（NAVY 14315C/STEEL 5B87C6），平板友好参数（图宽16cm/段距8pt）；所有级别蓝图（full/standard/minimal）排版件全量套用，minimal 级无 PUA 环节、通俗质量由 QA 硬检兜底"
+  }
 }

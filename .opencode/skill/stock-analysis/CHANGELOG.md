@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## v3.2（2026-10-04）通俗外挂层 + 深蓝投行排版改版（grill 6 波批准）
+
+- **设计哲学（铁律八）**：报告面向非专业金融从业者——**通俗只是专业深度的外挂解释层，判断权归专业层**；通俗层数字与专业层不一致 = QA FAIL；禁以"太通俗"降专业深度，也禁以"太专业"删通俗件；技法注册表 techniques.json 全保留，只是呈现更好读
+- **docx_helpers 深蓝投行风**：酒红金米白 → 海军蓝 NAVY 14315C/钢蓝 STEEL 5B87C6/浅蓝灰/沙金点缀（高盛/大摩参照）；旧颜色名保留兼容别名；保守平板参数（图宽默认 16cm、段后 8pt、行距 1.35，字号不动）
+- **通俗外挂层 API**：`plain_note`（逐段白话注块，analogy=True 自动带"※比喻仅为助记"免责）、`so_what`（所以呢框）、`faq_box`（小白问答，白底虚线）、`method_card`（三段式方法卡：是什么/为什么用它/结果怎么读）、`table_intro`（表前导语）、`speedread_page`（封面后 30秒速读一页纸：结论+理由速览+关键数字+主图+风险多空）
+- **图表编号系统**：img/add_table caption 自动连续编号"图N/表N"（已带编号不重复），`fig_table_list` 附录图表清单；`dump_doc_text` 新增【外挂】【表注】标记
+- **chart_helpers.diagram**：简洁逻辑示意图（几何+箭头+中文，深蓝系，note 标"仅为逻辑示意"）——业务链/竞争格局/方法论图解新能力
+- **PUA 通俗两问**：desk_chief.md 新增 kind='plain' 通俗问 ≤2（比喻失真检验+扮小白 FAQ）；manager_log 上限 3→"专业≤3+通俗≤2 合计≤5"
+- **blueprints v3**：顶层 `layout_rules`（能图不表优先级/逐段外挂/方法卡挂点/表前三规/>10行转图/图表编号/速读页），8 蓝图全插 speedread 章节；排版件全级别（full/standard/minimal）统一套用，minimal 无 PUA 由 QA 硬检兜底
+- **check_report_depth v3.2**（只增不减）：[错误] 通俗层数字与专业层不一致；[警告] 缺速读页/通俗覆盖不足（方法卡≥2、白话注≥5、FAQ≥1）；输出 plain_blocks 统计
+- **subagent-protocol.md**：写手排版件契约 8 条（输入包+layout_rules）
+- **文档**：docx-conventions.md 深蓝令牌+新元素+QA 16/17 项；SKILL.md v3.2（分级表/铁律八/速读页/排版件示例）
+- selftest 更新颜色断言 + 新增 4 用例（通俗件渲染/图表编号/diagram/通俗层 QA）
+
 ## v3.1（2026-10-03）self-grill（/ask）零人工路线
 
 - **/ask 命令**：用户一句话提问 → 拷问者×应答者双子代理（互不可见，文件总线对谈）按 grill 同款波次协议自我拷问（≤6 波），推导 brief 后 `brief_lib.self_approve()` 自动批准（approval 带 auto+免责），直接走 full 级流水线至 docx 交付——全程零用户参与
