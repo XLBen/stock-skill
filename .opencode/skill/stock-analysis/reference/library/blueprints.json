@@ -754,11 +754,11 @@
   ],
   "layout_rules": {
     "priority": "能图不表、能表不文字墙：写作时优先用图（数据图/逻辑示意图）表达，其次紧凑表格，最后才是大段文字；QA 按此抽查",
-    "plain_layer": "通俗=专业深度的外挂解释层，判断权归专业层：① 承重论述段（≥3 行专业论证）后逐段外挂 plain_note 白话注块；② 每章 ≥1 个 so_what 所以呢框（关键结论对钱袋意味着什么）；③ 每章 ≥1 个 faq_box 小白问答（PUA 管理员扮问产出，minimal 级由写手按读者画像预判）；④ 生活化比喻必须 analogy=True 带'仅为助记'免责；⑤ 通俗层数字必须与专业层一致（QA 硬检查，无权引入新数字）",
+    "plain_layer": "通俗=专业深度的外挂解释层，判断权归专业层（v3.3：写手提交前须先过蓝军自攻三问，见 subagent-protocol）：① 承重论述段（≥3 行专业论证）后逐段外挂 plain_note 白话注块；② 每章 ≥1 个 so_what 所以呢框（关键结论对钱袋意味着什么）；③ 每章 ≥1 个 faq_box 小白问答（PUA 管理员扮问产出，minimal 级由写手按读者画像预判）；④ 生活化比喻必须 analogy=True 带'仅为助记'免责；⑤ 通俗层数字必须与专业层一致（QA 硬检查，无权引入新数字）",
     "method_card": "每个估值方法/激活技法首次出现处挂 method_card 三段式方法卡（是什么/为什么用它/结果怎么读）；技法注册表协议不变，只加讲解",
     "table_rules": "① 表前必配 table_intro 导语（这张表想说明什么）；② 正文表格 >10 行转图（bar/hbar/heatmap）并全表移附录；③ 正文保留表 ≤8 行，列宽收敛关键列；④ 附录长表不设限",
     "charts": "每章按内容自然配图但倾向极大扩展制图：数据图用 chart_helpers；业务链/竞争格局/方法论等定性逻辑用 chart_helpers.diagram 简洁示意图（几何+箭头+中文，note 标'仅为逻辑示意'）；图/表自动连续编号（图N/表N），附录含图表清单（fig_table_list）",
     "speedread": "封面后第一页为 speedread_page 30秒速读一页纸：结论区（评级/区间）+理由速览（论点树承重柱一句话版）+关键数字小表+主图1张+风险与多空各一条；无目录页",
-    "style": "docx_helpers v3.2 深蓝投行风（NAVY 14315C/STEEL 5B87C6），平板友好参数（图宽16cm/段距8pt）；所有级别蓝图（full/standard/minimal）排版件全量套用，minimal 级无 PUA 环节、通俗质量由 QA 硬检兜底"
+    "style": "docx_helpers v3.3 经济学人黑白红风（INK 1A1A1A/SCARLET E3120B/浅灰），平板友好参数（图宽16cm/段距8pt）；所有级别蓝图（full/standard/minimal）排版件全量套用，minimal 级无 PUA 环节、通俗质量由 QA 硬检兜底"
   }
 }

@@ -487,8 +487,20 @@ def test_check_storage():
 
 
 def test_check_delivery():
-    code = cd.main()
-    expect(code == 0, 'check_delivery 应 0 错误（落点/命名/防堆积违规），实际退出码 %d' % code)
+    import workspace_lib as wl
+    # v3.3 封闭化：独立 fixture 根跑（原实现扫真实项目根，用户实测残留会误伤 CI）
+    root = os.path.join(TMP, 'wsroot_cd')
+    os.makedirs(os.path.join(root, '.opencode'), exist_ok=True)
+    wl.set_root(root)
+    try:
+        expect(cd.main() == 0, '空注册表+无产物应 0 错误（落点/命名/防堆积违规）')
+        e = wl.init_workspace('交付质检资产')
+        doc = dh.new_document()
+        dh.para(doc, 'x')
+        dh.save_stage(doc, '交付质检资产报告_20260101.docx', report_no=e['no'])
+        expect(cd.main() == 0, '合法双写交付应 0 错误')
+    finally:
+        wl.set_root(None)
 
 
 def test_check_report_depth():

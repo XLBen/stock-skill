@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""统一 Word 投资报告样式库（v3.2 深蓝投行风：海军蓝+钢蓝+浅蓝灰，通俗外挂层）。
+"""统一 Word 投资报告样式库（v3.3 经济学人黑白红：墨黑+经红+浅灰，通俗外挂层）。
 
 用法：
     from docx_helpers import *
@@ -26,17 +26,17 @@
     pagebreak(doc)
     save_stage(doc, '报告名_20260820.docx')           # 统一交付（禁止硬编码路径）
 
-样式约定（v3.2 深蓝投行风，高盛/大摩参照）：
-- 配色：海军蓝 NAVY 14315C（标题/表头/色带）、钢蓝 STEEL 5B87C6（装饰线）、
-        浅蓝灰 CREAM EEF2F8（callout/元信息底）、ZEBRA EDF1F7（斑马纹）、
-        正文 DARK 262626、风险 RED C0504D、沙金点缀 B08D4F（所以呢框/封面线）
-- 通俗外挂层（v3.2）：plain_note 白话注块（浅蓝底+钢蓝条）、so_what 所以呢框（沙金底）、
+样式约定（v3.3 经济学人黑白红风）：
+- 配色：墨黑 INK 1A1A1A（标题/表头/色带）、经济学人红 SCARLET E3120B（装饰条/所以呢框）、
+        浅灰 CREAM F7F7F7（callout/元信息底）、ZEBRA F2F2F2（斑马纹）、发丝线 BFBFBF、
+        正文 DARK 262626、风险 RED C0504D（灰调砖红，与经红区分）
+- 通俗外挂层（v3.2）：plain_note 白话注块（浅灰底+灰条）、so_what 所以呢框（极浅红底+红条）、
         faq_box 小白问答框（白底虚线）、method_card 三段式方法卡（是什么/为什么/怎么读）、
         table_intro 表前导语；通俗层只是专业深度的外挂解释，判断权归专业层
 - 正文：宋体 10.5~11pt + Times New Roman，行距 1.35，首行缩进 0.74cm，段后 8pt
-- 标题：黑体加粗海军蓝，一级左侧 3pt 色条+底部钢蓝线，二级左侧细条
-- 封面：顶部深蓝色带（徽章）+ 标题 + 钢蓝线 + 浅蓝灰元信息块 + 红色免责
-- 表格：深蓝表头白字加粗、浅蓝灰斑马纹、首列加粗、cell 内边距、表头行高
+- 标题：黑体加粗墨黑，一级左侧 3pt 红条+底部发丝线，二级左侧细红条，三级灰条
+- 封面：顶部墨黑色带（徽章）+ 标题 + 红色线 + 浅灰元信息块 + 砖红免责
+- 表格：墨黑表头白字加粗、浅灰斑马纹、首列加粗、cell 内边距、表头行高
 - callout：单格着色表格 + 左侧色条 + 图标符号（★ 结论 / ⚠ 风险）
 - 图片：居中 16cm，灰色 9pt 图注；图/表自动连续编号（图N/表N）+ 附录图表清单
 """
@@ -50,28 +50,31 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
-# ---- 深蓝投行配色（v3.2：高盛/大摩风） ----
-NAVY = RGBColor(0x14, 0x31, 0x5C)   # 海军蓝：标题/表头/色带（原酒红位）
-STEEL = RGBColor(0x5B, 0x87, 0xC6)  # 钢蓝：装饰线/次级点缀（原金位）
-NAVY_HEX = '14315C'
-STEEL_HEX = '5B87C6'
-SAND_HEX = 'B08D4F'                 # 沙金：所以呢框条/封面装饰线（深蓝报告的暖点缀）
-RED = RGBColor(0xC0, 0x50, 0x4D)    # 风险/免责
-GREY = RGBColor(0x59, 0x59, 0x59)   # 次要信息
-DARK = RGBColor(0x26, 0x26, 0x26)   # 正文近黑
+# ---- 经济学人黑白红配色（v3.3：The Economist 风） ----
+INK = RGBColor(0x1A, 0x1A, 0x1A)     # 墨黑：标题/表头/色带
+SCARLET = RGBColor(0xE3, 0x12, 0x0B)  # 经济学人红：装饰线/强调点缀
+INK_HEX = '1A1A1A'
+SCARLET_HEX = 'E3120B'
+HAIRLINE_HEX = 'BFBFBF'              # 浅灰发丝线：标题底线
+RED = RGBColor(0xC0, 0x50, 0x4D)     # 风险/免责（灰调砖红，与经红区分）
+GREY = RGBColor(0x59, 0x59, 0x59)    # 次要信息
+DARK = RGBColor(0x26, 0x26, 0x26)    # 正文近黑
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 
-# 兼容别名（v3.1 经典研报风名，值已并入深蓝系；新代码请用 NAVY/STEEL）
-MAROON = NAVY
-GOLD = STEEL
-BLUE = NAVY
-BLUE2 = STEEL
+# 兼容别名（v3.2 深蓝系/更早名，值已并入黑白红；新代码请用 INK/SCARLET）
+NAVY = INK; NAVY_HEX = INK_HEX
+STEEL = SCARLET; STEEL_HEX = SCARLET_HEX
+SAND_HEX = SCARLET_HEX
+MAROON = INK
+GOLD = SCARLET
+BLUE = INK
+BLUE2 = SCARLET
 
-CREAM = 'EEF2F8'      # callout/元信息底（浅蓝灰）
-ZEBRA = 'EDF1F7'      # 浅蓝灰斑马纹
+CREAM = 'F7F7F7'      # callout/元信息底（浅灰）
+ZEBRA = 'F2F2F2'      # 斑马纹（浅灰）
 WARN_FILL = 'FBE9E9'  # 风险 callout 底
-NOTE_FILL = 'F0F4FA'  # 白话注块底
-SOWHAT_FILL = 'FBF2DC'  # 所以呢框底（浅沙金）
+NOTE_FILL = 'F5F5F5'  # 白话注块底
+SOWHAT_FILL = 'FCEBE9'  # 所以呢框底（极浅经红）
 
 PROJECT_ROOT = None
 
@@ -341,7 +344,7 @@ def setup_page(doc, header_text='投资研究报告', footer_date=None, header_l
     if footer_date:
         r2 = hp.add_run('\t' + footer_date)
         set_cn(r2, font='宋体', size=8, color=GREY)
-    _p_border(hp, 'bottom', 6, NAVY_HEX, space=2)
+    _p_border(hp, 'bottom', 6, SCARLET_HEX, space=2)
     # 页脚页码域
     ftr = sec.footer
     fp = ftr.paragraphs[0]
@@ -404,31 +407,31 @@ def _heading_style(p, size, color, before, after):
 
 
 def h1(doc, text, size=15):
-    """一级标题：黑体酒红加粗，左侧 3pt 色条 + 底部金线。"""
+    """一级标题：黑体墨黑加粗，左侧 3pt 经济学人红条 + 底部浅灰发丝线。"""
     p = doc.add_paragraph()
-    _heading_style(p, size, MAROON, 16, 10)
-    _p_border(p, 'left', 22, NAVY_HEX, space=3)
-    _p_border(p, 'bottom', 6, STEEL_HEX, space=2)
+    _heading_style(p, size, INK, 16, 10)
+    _p_border(p, 'left', 22, SCARLET_HEX, space=3)
+    _p_border(p, 'bottom', 6, HAIRLINE_HEX, space=2)
     r = p.add_run(text)
-    set_cn(r, font='黑体', size=size, bold=True, color=MAROON)
+    set_cn(r, font='黑体', size=size, bold=True, color=INK)
     return p
 
 
 def h2(doc, text, size=12.5):
-    """二级标题：黑体酒红加粗，左侧细条。"""
+    """二级标题：黑体墨黑加粗，左侧细红条。"""
     p = doc.add_paragraph()
-    _heading_style(p, size, MAROON, 12, 8)
-    _p_border(p, 'left', 10, NAVY_HEX, space=3)
+    _heading_style(p, size, INK, 12, 8)
+    _p_border(p, 'left', 10, SCARLET_HEX, space=3)
     r = p.add_run(text)
-    set_cn(r, font='黑体', size=size, bold=True, color=MAROON)
+    set_cn(r, font='黑体', size=size, bold=True, color=INK)
     return p
 
 
 def h3(doc, text, size=11):
-    """三级标题：黑体加粗深灰，左侧金线。"""
+    """三级标题：黑体加粗深灰，左侧灰条。"""
     p = doc.add_paragraph()
     _heading_style(p, size, DARK, 10, 5)
-    _p_border(p, 'left', 6, STEEL_HEX, space=3)
+    _p_border(p, 'left', 6, '8C8C8C', space=3)
     r = p.add_run(text)
     set_cn(r, font='黑体', size=size, bold=True, color=DARK)
     return p
@@ -674,14 +677,14 @@ def plain_note(doc, text, analogy=False):
     """【白话解读】注块：专业论述段后紧跟的通俗解释（逐段外挂，v3.2 排版件）。
     analogy=True 表示含生活化比喻，自动追加免责小字（比喻仅为助记，严格定义见方法卡）。"""
     extra = [('　※ 比喻仅为助记，严格定义见方法卡/术语注', 8.5, GREY)] if analogy else None
-    return _plain_box(doc, '白话解读｜', text, NOTE_FILL, STEEL_HEX,
+    return _plain_box(doc, '白话解读｜', text, NOTE_FILL, '595959',
                       extra_runs=extra)
 
 
 def so_what(doc, text):
-    """【所以呢】框：关键结论/数字对读者钱袋意味着什么（决策含义，沙金底）。"""
-    return _plain_box(doc, '所以呢｜', text, SOWHAT_FILL, SAND_HEX,
-                      bold_prefix=True, color=RGBColor(0x8A, 0x66, 0x1F))
+    """【所以呢】框：关键结论/数字对读者钱袋意味着什么（决策含义，极浅红底+红条）。"""
+    return _plain_box(doc, '所以呢｜', text, SOWHAT_FILL, SCARLET_HEX,
+                      bold_prefix=True, color=RGBColor(0xA3, 0x0D, 0x08))
 
 
 def faq_box(doc, question, answer):
@@ -694,7 +697,7 @@ def faq_box(doc, question, answer):
     r = p1.add_run('小白问：'); set_cn(r, size=9.5, bold=True, color=NAVY)
     r = p1.add_run(question); set_cn(r, size=9.5, bold=True, color=DARK)
     p2 = cell.add_paragraph(); p2.paragraph_format.line_spacing = 1.3
-    r = p2.add_run('答：'); set_cn(r, size=9.5, bold=True, color=STEEL)
+    r = p2.add_run('答：'); set_cn(r, size=9.5, bold=True, color=GREY)
     r = p2.add_run(answer); set_cn(r, size=9.5, bold=False, color=DARK)
     shade(cell, 'FFFFFF')
     tcPr = cell._tc.get_or_add_tcPr()
@@ -704,7 +707,7 @@ def faq_box(doc, question, answer):
         el.set(qn('w:val'), 'dashed' if side != 'left' else 'single')
         el.set(qn('w:sz'), '6' if side != 'left' else '18')
         el.set(qn('w:space'), '0')
-        el.set(qn('w:color'), STEEL_HEX)
+        el.set(qn('w:color'), 'A6A6A6' if side != 'left' else INK_HEX)
         tcBorders.append(el)
     tcPr.append(tcBorders)
     doc.add_paragraph().paragraph_format.space_after = Pt(3)
@@ -784,8 +787,8 @@ def cover(doc, title, subtitle=None, meta=None, disclaim=None, badge=None,
     for _ in range(4):
         doc.add_paragraph()
     p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    set_cn(p.add_run(title), font='黑体', size=title_size, bold=True, color=NAVY)
-    _p_border(p, 'bottom', 10, STEEL_HEX, space=6)
+    set_cn(p.add_run(title), font='黑体', size=title_size, bold=True, color=INK)
+    _p_border(p, 'bottom', 10, SCARLET_HEX, space=6)
     doc.add_paragraph()
     if subtitle:
         p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER

@@ -2,25 +2,25 @@
 
 ## 1. 样式令牌（全局统一，所有报告一律生效，不随资产变化）
 
-由 `scripts/docx_helpers.py` 强制执行，禁止内联复制样式代码。**v3.2 深蓝投行风：海军蓝+钢蓝+浅蓝灰（高盛/大摩参照）**。
+由 `scripts/docx_helpers.py` 强制执行，禁止内联复制样式代码。**v3.3 经济学人黑白红风：墨黑+经红+浅灰（The Economist 参照）**。
 
 | 元素 | 规范 |
 |---|---|
-| 配色 | 海军蓝 NAVY `14315C`（标题/表头/色带）、钢蓝 STEEL `5B87C6`（装饰线）、沙金 SAND `B08D4F`（所以呢框条/封面线点缀）、浅蓝灰 CREAM `EEF2F8`（callout/元信息底）、ZEBRA `EDF1F7`（斑马纹）、正文 DARK `262626`、风险 RED `C0504D`；旧名 MAROON/GOLD 为兼容别名（值=NAVY/STEEL） |
+| 配色 | 墨黑 INK `1A1A1A`（标题/表头/色带）、经济学人红 SCARLET `E3120B`（装饰条/所以呢框）、发丝线 HAIRLINE `BFBFBF`、浅灰 CREAM `F7F7F7`（callout/元信息底）、ZEBRA `F2F2F2`（斑马纹）、正文 DARK `262626`、风险 RED `C0504D`（灰调砖红，与经红区分）；旧名 NAVY/STEEL/MAROON/GOLD 为兼容别名（值=INK/SCARLET） |
 | 正文 | 宋体 10.5~11pt + Times New Roman，行距 1.35，首行缩进 0.74cm，段后 8pt（平板友好） |
-| 一级标题 | 黑体 15pt 加粗海军蓝，左侧 3pt 色条（`w:pBdr` left sz=22）+ 底部 0.8pt 钢蓝线（sz=6 `5B87C6`） |
-| 二级标题 | 黑体 12.5pt 加粗海军蓝，左侧细条（sz=10） |
-| 三级标题 | 黑体 11pt 加粗深灰，左侧钢蓝线（sz=6） |
-| 表格 | `Table Grid` 居中；表头海军蓝底 `14315C` 白字 9~9.5pt 加粗 + 行高 ≥0.55cm；奇数行浅蓝灰斑马纹 `EDF1F7`；首列加粗深灰；cell 内边距上下 0.08cm 左右 0.12cm；首列左对齐其余居中；列宽 Cm 显式指定 |
-| 图 | 居中，宽 13.5~16cm（默认 16），图注灰色 9pt 居中 |
+| 一级标题 | 黑体 15pt 加粗墨黑，左侧 3pt 经济学人红条（`w:pBdr` left sz=22）+ 底部 0.8pt 发丝线（sz=6 `BFBFBF`） |
+| 二级标题 | 黑体 12.5pt 加粗墨黑，左侧细红条（sz=10） |
+| 三级标题 | 黑体 11pt 加粗深灰，左侧灰条（sz=6 `8C8C8C`） |
+| 表格 | `Table Grid` 居中；表头墨黑底 `1A1A1A` 白字 9~9.5pt 加粗 + 行高 ≥0.55cm；奇数行浅灰斑马纹 `F2F2F2`；首列加粗深灰；cell 内边距上下 0.08cm 左右 0.12cm；首列左对齐其余居中；列宽 Cm 显式指定 |
+| 图 | 居中，宽 13.5~16cm（默认 16），图注灰色 9pt 居中；图表主色墨黑/深灰、强调与负值经红（chart_helpers 已统一） |
 | 图表编号 | v3.2：图/表自动连续编号"图N　题注"/"表N　题注"（img/add_table caption 参数），附录含图表清单 `fig_table_list(doc)`；正文引用写"见图N" |
 | 提示框 callout | 单格着色表格 + 左侧色条：结论型 `★`（浅蓝灰底 `EEF2F8` + 海军蓝条）、风险型 `⚠`（淡红底 `FBE9E9` + 红色条），文字加粗 |
-| 通俗外挂层 | v3.2：`plain_note`【白话解读｜】浅蓝底 `F0F4FA`+钢蓝条（专业段后逐段外挂，analogy=True 追加"※比喻仅为助记"免责）；`so_what`【所以呢｜】浅沙金底 `FBF2DC`+沙金条；`faq_box`【小白问：/答：】白底虚线钢蓝；`method_card`【方法卡｜名称】三段式（是什么/为什么用它/结果怎么读）；`table_intro`【看表先读：】斜体灰表前导语。通俗层只是专业深度的外挂，判断权归专业层 |
+| 通俗外挂层 | v3.2：`plain_note`【白话解读｜】浅灰底 `F5F5F5`+灰条（专业段后逐段外挂，analogy=True 追加"※比喻仅为助记"免责）；`so_what`【所以呢｜】极浅红底 `FCEBE9`+经红条；`faq_box`【小白问：/答：】白底灰虚线；`method_card`【方法卡｜名称】三段式（是什么/为什么用它/结果怎么读）；`table_intro`【看表先读：】斜体灰表前导语。通俗层只是专业深度的外挂，判断权归专业层 |
 | 速读页 | v3.2：封面后第一页 `speedread_page`——30秒速读：结论 callout+理由速览+关键数字小表+主图+风险多空，一页放完，无目录 |
-| 封面 | 顶部全宽深蓝色带（黑体 12pt 白字徽章，行高 0.9cm）→ 黑体 28pt 加粗海军蓝标题 → 钢蓝细线（sz=10）→ 14pt 灰副标题 → 浅蓝灰元信息块（每行居中灰字）→ 红色免责声明 |
-| 页眉页脚 | `setup_page(doc, 标题, 日期)`：页眉=黑 8pt 灰标题（右日期）+ 海军蓝细线；页脚=居中页码 `— N —`（PAGE 域，宋体 9pt 灰）；首页自动跳过 |
+| 封面 | 顶部全宽墨黑色带（黑体 12pt 白字徽章，行高 0.9cm）→ 黑体 28pt 加粗墨黑标题 → 经济学人红细线（sz=10）→ 14pt 灰副标题 → 浅灰元信息块（每行居中灰字）→ 砖红免责声明 |
+| 页眉页脚 | `setup_page(doc, 标题, 日期)`：页眉=黑 8pt 灰标题（右日期）+ 经济学人红细线；页脚=居中页码 `— N —`（PAGE 域，宋体 9pt 灰）；首页自动跳过 |
 | 页边距 | 上下 2.4/2.2cm、左右 2.4cm；章节间 `doc.add_page_break()` |
-| 颜色常量 | NAVY/STEEL/RED/GREY/DARK/WHITE + NAVY_HEX/STEEL_HEX/SAND_HEX；MAROON/GOLD/BLUE/BLUE2 为兼容别名 |
+| 颜色常量 | INK/SCARLET/RED/GREY/DARK/WHITE + INK_HEX/SCARLET_HEX/HAIRLINE_HEX；NAVY/STEEL/MAROON/GOLD/BLUE/BLUE2/SAND_HEX 为兼容别名 |
 
 ## 2. 报告结构（蓝图驱动，随资产画像推导）
 
