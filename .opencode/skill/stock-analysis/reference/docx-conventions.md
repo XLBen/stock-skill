@@ -17,7 +17,7 @@
 
 ## 通俗层(layout_rules)
 - priority 能图不表, 能表不文字墙; 定性逻辑用 `diagram`(note"仅为逻辑示意"); 图库 `chart_helpers`: line_chart/bar_chart/hbar/heatmap/boxplot/twin_bar_line/waterfall/diagram
-- 承重段(≥3 行)后挂 `plain_note`(`analogy=True` 附"※仅为助记"); 每章 ≥1 `so_what`; 全报告 ≥1 `faq_box`(PUA/写手预判)
+- 承重段(≥3 行)后挂 `plain_note`(`analogy=True` 附"※仅为助记"); 每章 ≥1 `so_what`; 全报告 ≥1 `faq_box`(PUA 自审或写作时预判)
 - 估值/技法首现挂 `method_card(name,what,why,how_to_read)`; 表前 `table_intro`; 正文表 >10 行转图(`bar_chart`/`hbar`/`heatmap`)移附录, 正文 ≤8 行
 - `img`/`add_table` caption 自动"图N/表N"; `fig_table_list` 附录清单; 封面后 `speedread_page` 30 秒速读(结论+理由+数字表+主图+多空); 通俗层数字须与专业层一致(QA 硬检), 判断权归专业层; 速读页+方法卡≥2/白话&所以呢≥5/FAQ≥1
 

@@ -5,23 +5,24 @@
 
 ```
 /ask "XX股份现在能买吗"
-  └─ self-grill 单轮推导需求（零人工）
-      → 8 维画像推导方法集 → 数据侦察(FACTS 冻结) → 预测/估值(数字由代码算)
-      → 单写手分章写作 + 总监审问一次 → 单次审计(R1) → QA → 编号归档 docx
+  └─ 主上下文单轮自推导需求（self-grill，零人工、零子代理）
+      → 8 维画像推导方法集 → 抓数+FACTS 冻结 → 预测/估值(数字由代码算)
+      → 主上下文顺序写作 + 总监自审一次 → 自我对抗审计(R1) → QA → 编号归档 docx
 ```
 
 ## 核心特性
 
 | 特性 | 说明 |
 |---|---|
-| **省 token 设计** | 需求 1 波问清；子代理 ≤3（侦察/写手/审计各 1）；PUA 全稿只审 1 次；审计 R1 定案；篇幅按蓝图降档（full 8000 / standard 6000 / minimal 4000 / update 3000 字符） |
+| **省 token 设计** | 需求 1 波问清；**零子代理**（不派 Task：抓数/写作/PUA/审计全部主上下文）；PUA 全稿只审 1 次；审计 R1 定案；篇幅按蓝图降档（full 8000 / standard 6000 / minimal 4000 / update 3000 字符） |
 | **grill 需求拷问** | 一批 5~6 问覆盖全部必填字段，模糊答案才追问（上限 2 波），产出 brief.json 并批准（唯一人工门） |
-| **self-grill 零人工** | `/ask` 一句话：拷问者×应答者各 1 轮推导需求，自动批准直接出报告 |
+| **self-grill 零人工** | `/ask` 一句话：主上下文单轮自推导全部字段（标 [代理推断]），自动批准直接出报告 |
 | **8 维画像推导** | 现金流/披露/供给/流动性/价格行为等属性 → JSON 规则库谓词匹配出方法集/数据源/报告蓝图；地产禁 PE、手办禁 DCF |
 | **技法注册表** | 20 项分析技法按需激活，每个挂点 ≤3 且必填理由；无合适技法按证据门槛自动扩充 |
 | **数字由代码算** | 预测/估值只出自 `forecast_lib`/`valuation_lib` 算子，LLM 手算即违规；假设必带证据链与基础比率锚 |
 | **PUA 总监审问** | 全稿写完后一次：先自攻验证（SELF_ATTACK 三问），再 ≤3 专业问 + ≤1 通俗问，驳回自动重写 ≤1 次 |
-| **单次审计·四道闸** | R1 攻防定案（full ≥4 条含 ≥1 替代解读/隐含前提；standard ≥3）；火力/覆盖/门禁三闸全过才许终稿 |
+| **自我对抗审计·四道闸** | 主上下文以 dump 为准扮空头 R1 攻击（full ≥4 条含 ≥1 替代解读/隐含前提；standard ≥3）；火力/覆盖/门禁三闸全过才许终稿 |
+| **防自证纪律** | 先抓数冻结 FACTS 再立论；写作只消费 FACTS+算子；审计只认 dump 与落盘证据，禁凭记忆放行 |
 | **编号存档与追问复盘** | 每报告一编号一工作区，docx 双写交付；`/drill 编号` 回溯拷问，第 N 份站在第 N-1 份肩上 |
 
 ## 安装
@@ -58,10 +59,10 @@ PUA 总监审问**没有命令**——它在全稿完成后由主上下文自动
 
 1. brief：grill / self-grill → `brief.json`（1~2 波，唯一人工门）
 2. 画像推导 + 技法候选（`profile_lib.derive` + `technique_lib.recommend`）
-3. 数据侦察兵子代理 ×1（缓存优先）+ `FACTS.md` 中性事实清单**冻结**
+3. 主上下文抓数（缓存优先）+ `FACTS.md` 中性事实清单**冻结**
 4. 预测建模 + 估值（`forecast_lib`/`valuation_lib`，数字由代码算；premortem/base_rate 强制）
-5. 论点树 → 单写手顺序写全稿 → PUA 全稿审问 1 次（`manager_log`）
-6. 单次审计（`socratic_lib` mode='single_audit'，R1）→ QA（0 错误）→ 编号归档（`70_delivered/` + `reports/所有报告/{编号}_{名}.docx`）+ 完成摘要
+5. 论点树 → 主上下文顺序写全稿 → PUA 全稿自审 1 次（`manager_log`）
+6. 自我对抗审计（`socratic_lib`，R1）→ QA（0 错误）→ 编号归档（`70_delivered/` + `reports/所有报告/{编号}_{名}.docx`）+ 完成摘要
 
 异常**绝不悬停等人**：驳回→自动重写、审计修正→自动回流重跑、数据挂→降级标注、超限→`blocked`（附 `/report resume` 恢复点）。
 
@@ -80,15 +81,16 @@ PUA 总监审问**没有命令**——它在全稿完成后由主上下文自动
 .opencode/
 ├── command/                    # /grill /report /drill /ask
 └── skill/stock-analysis/
-    ├── SKILL.md                # 主协议（v3.4-lite 流水线 6 步与省 token 原则）
+    ├── SKILL.md                # 主协议（v3.5 零子代理流水线 6 步与省 token 原则）
     ├── CHANGELOG.md
     ├── requirements.txt
     ├── scripts/                # 20 个 Python 库（工作区/brief/技法/抓数/预测/估值/审计/PUA/QA）
     └── reference/
         ├── library/            # JSON 规则库（方法/源/蓝图/回测/分歧/技法）
-        ├── templates/          # grill·self-grill×2·desk_chief·single_auditor·drill
-        ├── subagent-protocol.md    # 子代理防火墙与输入包规范
-        └── data-sources.md / docx-conventions.md / analysis-methods.md / analysis-techniques.md
+        ├── data-sources.md     # 数据源用法
+        ├── docx-conventions.md # Word 版式令牌
+        ├── analysis-methods.md # 方法口径
+        └── analysis-techniques.md  # 20 技法协议
 ```
 
 运行期产物（不入库，`.gitignore` 已排除）：`reports/{编号}_{主题}/` 九区工作区、`reports/所有报告/` docx 汇集、`档案/` 复盘 dossier。

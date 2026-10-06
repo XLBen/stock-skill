@@ -2,7 +2,7 @@
 description: 报告需求拷问（询问模式·1 波）：一批 5~6 问覆盖全部必填字段，产出 brief.json 并请求批准——流水线唯一人工门。
 ---
 
-加载 stock-analysis skill（.opencode/skill/stock-analysis/SKILL.md），执行需求拷问（询问模式，模板 `reference/templates/grill_interviewer.md`）。
+加载 stock-analysis skill（.opencode/skill/stock-analysis/SKILL.md），执行需求拷问（询问模式，主上下文直接执行，不派子代理）。
 
 目标：$ARGUMENTS（为空则先问用户要分析什么）。
 

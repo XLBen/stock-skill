@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "note": "报告蓝图库 v2→v3（2026-10 对齐全自治流水线）：对齐专业研究范式（券商深度研报/另类资产研究/地产REIT研究/量化策略研究）。章节 spec 以【证据对象】枚举为准——QA 按证据对象清点，字数仅参考；字数不足时补新论点+新数据源，禁止扩写旧文本注水。投资类蓝图含常设反方章节（由单次审计记录驱动，含 PUA escalated 未决）与附录审计统计/管理员审问统计/数字溯源表。技法挂点见 techniques.json（按需激活）。样式令牌全局统一见 docx-conventions.md。optional_sections.when 为判定条件（dispute.trigger / dossier.prior 等）。 ｜ v3.4-lite（2026-10-04 grill 批准）：新增顶层 layout_rules 通俗外挂层排版规则（能图不表优先级/逐段白话注/三段式方法卡/表前导语/>10行转图/图表编号清单/30秒速读页），所有蓝图含 speedread 章节，技法注册表与流程闸门不变。v3.4-lite：篇幅降档（full/standard 8000、theme 6000、minimal 5000/4000、update 3000 字符），子代理 ≤3、审计 R1 定案、PUA 全稿一次。",
+  "note": "报告蓝图库 v2→v3（2026-10 对齐全自治流水线）：对齐专业研究范式（券商深度研报/另类资产研究/地产REIT研究/量化策略研究）。章节 spec 以【证据对象】枚举为准——QA 按证据对象清点，字数仅参考；字数不足时补新论点+新数据源，禁止扩写旧文本注水。投资类蓝图含常设反方章节（由单次审计记录驱动，含 PUA escalated 未决）与附录审计统计/管理员审问统计/数字溯源表。技法挂点见 techniques.json（按需激活）。样式令牌全局统一见 docx-conventions.md。optional_sections.when 为判定条件（dispute.trigger / dossier.prior 等）。 ｜ v3.5（2026-10-05）：零子代理省 token——全流程主上下文执行（抓数/写作/PUA/审计），篇幅降档（full 8000、theme 6000、minimal 5000/4000、update 3000 字符），审计 R1 定案、PUA 全稿一次。",
   "evidence_tags": {
     "[实证]": "可溯源到数据缓存或 results_*.json 的数字/事实（附录溯源表可回查）",
     "[推断]": "由实证数字经显式逻辑推出的判断（必须给出推理链）",
@@ -754,7 +754,7 @@
   ],
   "layout_rules": {
     "priority": "能图不表、能表不文字墙：优先图（数据图/逻辑示意图），其次紧凑表格，最后才是大段文字；QA 按此抽查",
-    "plain_layer": "通俗=专业深度的外挂，判断权归专业层；通俗层数字与专业层不一致=QA FAIL。①承重论述段（≥3 行）后挂 plain_note；②每章 ≥1 so_what；③全报告 ≥1 faq_box；④比喻必须 analogy=True 带“仅为助记”免责；⑤写手提交前过 SELF_ATTACK 三问（空头一击/最心虚数字/动机自检）",
+    "plain_layer": "通俗=专业深度的外挂，判断权归专业层；通俗层数字与专业层不一致=QA FAIL。①承重论述段（≥3 行）后挂 plain_note；②每章 ≥1 so_what；③全报告 ≥1 faq_box；④比喻必须 analogy=True 带“仅为助记”免责；⑤每章写作时先落 SELF_ATTACK 三问（空头一击/最心虚数字/动机自检）",
     "method_card": "每个估值方法/激活技法首次出现处挂 method_card（是什么/为什么用/怎么读），全报告 ≥2 张",
     "table_rules": "① 表前必配 table_intro；② 正文表 >10 行转图并移附录；③ 正文表 ≤8 行；④ 附录长表不限",
     "charts": "数据图用 chart_helpers；定性逻辑用 diagram（标“仅为逻辑示意”）；图/表连续编号（图N/表N）且被正文引用，附录含 fig_table_list 图表清单",

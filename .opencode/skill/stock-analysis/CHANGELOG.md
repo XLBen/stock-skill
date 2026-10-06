@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v3.5（2026-10-05）零子代理版
+
+- **全面去子代理**：不再派任何 Task——抓数、写作、PUA 审问、对抗审计全部由主上下文执行；删除 `reference/templates/`（6 个提示模板）与 `reference/subagent-protocol.md`
+- **替代机制**：防自证纪律写入铁律（先抓数冻结 FACTS 再立论；写作只消费已登记文件；审计以 `dump_doc_text` 为准逐柱攻击、禁凭记忆放行；质询/回应落 `50_sessions/` 可回查）；PUA/审计/grill 协议内联进 SKILL.md 与命令；`delphi_estimate` 改为"主上下文背靠背独立估计"协议
+- **命令更新**：/ask 由双子代理对谈改为主上下文单轮自推导（字段标 [代理推断·强/中/弱]）；/report、/drill、/grill 移除子代理措辞
+- 脚本零改动（socratic_lib/manager_log 等 API 与质量闸不变），selftest 无需变更
+
 ## v3.4-lite（2026-10-05）极致省 token 版
 
 - **文档瘦身**：SKILL.md 18→5.6KB、4 个命令与 6 个模板、6 个 reference 文档全部压缩 70%+；删除 v3.2/v3.3 叙述性内容与重复示例，保留全部脚本 API/JSON schema/枚举
