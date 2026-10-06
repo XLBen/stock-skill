@@ -1,274 +1,376 @@
 {
- "version": 3,
- "note": "分析技法注册表（v3.0）：技法不全部使用——编排器每到挂点调 technique_lib.recommend() 取候选，自主决定激活（每挂点≤3，必填理由进 flow_log）。always_on 为按流程级别强制项。挂点无合适方法论时走 technique_lib.propose_auto() 自动扩充进 auto 区（证据门槛：≥1 来源，优先级 机构方法论>教材·论文>GitHub·业界实践，上限 20 条）。技法协议正文见 reference/analysis-techniques.md。",
- "stages": ["预测前", "假设校验", "分歧", "情景", "财务质量", "风险", "催化剂", "仓位", "复盘", "数据质量", "行业驱动"],
- "tiers": ["机构方法论", "教材·论文", "GitHub·业界实践"],
- "core": [
-  {
-   "id": "premortem",
-   "name": "事前验尸",
-   "stage": "预测前",
-   "applies": "true",
-   "blueprints": [],
-   "always_on": ["full"],
-   "trigger": "进入盈利预测/供需平衡建模之前：假设报告结论 12 个月后被打脸，逼出失败路径",
-   "protocol": "①列 3~5 条最可能死因（含可观测先行信号）②每条标注影响路径与受害假设 ③喂风险章预警信号+假设有效性表失效信号+review_triggers",
-   "sources": [
-    {"tier": "机构方法论", "cite": "CIA《Structured Analytic Techniques》PH 事前验尸规程"},
-    {"tier": "教材·论文", "cite": "Gary Klein, Performing a Project Premortem, Harvard Business Review 2007"}
-   ]
-  },
-  {
-   "id": "base_rate_outside_view",
-   "name": "基础比率外部视角",
-   "stage": "假设校验",
-   "applies": "true",
-   "blueprints": [],
-   "always_on": ["full", "standard"],
-   "trigger": "任何增长/改善类假设打 [推断] 标签时：必须锚定参考类历史分布，否则降级 [观点]",
-   "protocol": "①为增长假设找参考类（行业历史增速分布/同类公司达成率）②假设值对照 base rate 写明偏离理由 ③forecast_lib.Assumption.base_rate_ref 必填（缺→自动降级[观点]）④报告 divergent_views 章含基础比率对比表",
-   "sources": [
-    {"tier": "教材·论文", "cite": "Daniel Kahneman《Thinking, Fast and Slow》外部视角章"},
-    {"tier": "机构方法论", "cite": "Flyvbjerg 参考类预测（英国交通部 DfT / 丹麦重大项目管理强制方法论）"}
-   ]
-  },
-  {
-   "id": "key_assumptions_check",
-   "name": "关键假设清单核对",
-   "stage": "假设校验",
-   "applies": "true",
-   "blueprints": [],
-   "always_on": [],
-   "trigger": "假设数量多（>8 条）或假设间存在依赖链时：先核对假设清单再进入质询",
-   "protocol": "①枚举全部显式+隐含假设②按敏感性×不确定性排序取 Top 决策相关假设③隐含假设显式化进假设表",
-   "sources": [
-    {"tier": "机构方法论", "cite": "CIA《Structured Analytic Techniques》Key Assumptions Check"}
-   ]
-  },
-  {
-   "id": "delphi_estimate",
-   "name": "匿名独立估计聚合",
-   "stage": "假设校验",
-   "applies": "true",
-   "blueprints": [],
-   "always_on": [],
-   "trigger": "关键参数（增速/WACC/溢价率）分歧大且无权威锚时：主上下文背靠背独立估计再聚合（零子代理版）",
-   "protocol": "①≥3 次独立估计：先各自写完估计+理由再聚合，禁边估边比（模拟互不可见）②取中位/分布③分歧>20% 的参数进质询",
-   "sources": [
-    {"tier": "机构方法论", "cite": "RAND Corporation Delphi Method（匿名多轮独立估计）"}
-   ]
-  },
-  {
-   "id": "ach_matrix",
-   "name": "竞争性假设矩阵",
-   "stage": "分歧",
-   "applies": "true",
-   "blueprints": [],
-   "always_on": [],
-   "trigger": "dispute_analysis 触发（方法分歧>20%/区间不重叠）或存在多个互斥解读时",
-   "protocol": "①列假设集（估值方法结论/读法）②逐证据打 一致/不一致/无关 ③按'最少不一致'排序而非多数证据④矩阵表进分歧章节+诊断性证据标注",
-   "sources": [
-    {"tier": "机构方法论", "cite": "Richards Heuer《Psychology of Intelligence Analysis》Ch.8 ACH；CIA Tradecraft Primer"}
-   ]
-  },
-  {
-   "id": "scenario_2x2",
-   "name": "2×2 情景推演",
-   "stage": "情景",
-   "applies": "true",
-   "blueprints": ["equity_deep_8ch", "rental_asset", "asset_research"],
-   "always_on": [],
-   "trigger": "联合脆弱质询暴露两个强相关核心不确定驱动时：替代线性三档",
-   "protocol": "①取两个最关键不确定驱动为轴②四象限各给叙事+估值影响③每情景配先行指标④情景权重→weighted_synthesis 敏感性",
-   "sources": [
-    {"tier": "机构方法论", "cite": "Shell 情景规划双驱动轴法；Peter Schwartz《The Art of the Long View》"},
-    {"tier": "教材·论文", "cite": "Paul Schoemaker《Profiting from Uncertainty》"}
-   ]
-  },
-  {
-   "id": "tornado_sensitivity",
-   "name": "龙卷风敏感性排序",
-   "stage": "情景",
-   "applies": "cf=有 | cf=租金型",
-   "blueprints": [],
-   "always_on": [],
-   "trigger": "估值敏感性表参数多（>5 个）时：先排序再画表",
-   "protocol": "①逐参数±档位重跑中枢②按影响幅度降序排龙卷风图③Top2 参数进 flip_point 联合分析",
-   "sources": [
-    {"tier": "教材·论文", "cite": "Damodaran《Investment Valuation》敏感性分析章"},
-    {"tier": "机构方法论", "cite": "估值实践中龙卷风图标准做法（咨询/卖方建模规范）"}
-   ]
-  },
-  {
-   "id": "indicators_signposts",
-   "name": "先行指标与路标",
-   "stage": "风险",
-   "applies": "true",
-   "blueprints": [],
-   "always_on": [],
-   "trigger": "情景/预测落地依赖可观测信号时：为每个关键假设配先行指标",
-   "protocol": "①每个核心假设列 2~3 个可观测先行指标（频率+数据源+警戒线）②进投资建议跟踪指标清单与 review_triggers",
-   "sources": [
-    {"tier": "机构方法论", "cite": "情景规划 signposts/tripwires 规程（Shell/GBN）"}
-   ]
-  },
-  {
-   "id": "inversion",
-   "name": "逆向思维",
-   "stage": "风险",
-   "applies": "true",
-   "blueprints": [],
-   "always_on": [],
-   "trigger": "风险章只列得出'行业风险'式口号时：反向问'怎样必然亏'",
-   "protocol": "①列出'保证这笔投资失败'的行为/条件清单②反向推导规避动作③与风险章互查缺口",
-   "sources": [
-    {"tier": "教材·论文", "cite": "Charlie Munger 逆向思维（Jacobi 'Invert, always invert'）"}
-   ]
-  },
-  {
-   "id": "reverse_stress_test",
-   "name": "反压力测试",
-   "stage": "风险",
-   "applies": "true",
-   "blueprints": [],
-   "always_on": [],
-   "trigger": "结论稳健性存疑或背反记录产生时：反推什么情景杀死结论",
-   "protocol": "①从'结论失效'出发反推参数组合②找出杀死结论的最小参数变动（衔接 flip_point）③若情景合理概率>10% 必须写进风险章并下调置信度",
-   "sources": [
-    {"tier": "机构方法论", "cite": "欧洲央行 ECB/英国 FSA 反压力测试监管方法论"}
-   ]
-  },
-  {
-   "id": "second_order_effects",
-   "name": "二阶效应分析",
-   "stage": "行业驱动",
-   "applies": "true",
-   "blueprints": [],
-   "always_on": [],
-   "trigger": "行业分析含政策/技术/竞争冲击时：一阶结论后必查二阶反馈",
-   "protocol": "①画驱动→一阶效应→二阶反馈链（含各方博弈反应）②标注反馈是放大/衰减③高杠杆二阶项进风险与情景",
-   "sources": [
-    {"tier": "教材·论文", "cite": "Donella Meadows《Thinking in Systems》系统思考"}
-   ]
-  },
-  {
-   "id": "piotroski_fscore",
-   "name": "Piotroski F-Score",
-   "stage": "财务质量",
-   "applies": "cf=有 & disc=有",
-   "blueprints": [],
-   "always_on": [],
-   "trigger": "财务质量章需要标准化基本面打分时",
-   "protocol": "①9 项二元判据逐项打分（盈利/杠杆/营运效率）②对照行业分布定位③低分项联动净利-现金流匹配检查",
-   "sources": [
-    {"tier": "教材·论文", "cite": "Piotroski, Value Investing: The Use of Historical Financial Statement Information, JAR 2000"}
-   ]
-  },
-  {
-   "id": "beneish_mscore",
-   "name": "Beneish M-Score 操纵信号",
-   "stage": "财务质量",
-   "applies": "cf=有 & disc=有",
-   "blueprints": [],
-   "always_on": [],
-   "trigger": "盈利质量异常（应收/毛利/资产质量指数异动）时",
-   "protocol": "①8 指数计算（DSRI/GMI/AQI/SGI/DEPI/SGAI/LVGI/TATA）②M>-1.78 预警③预警时必须进风险章并核查审计意见",
-   "sources": [
-    {"tier": "教材·论文", "cite": "Beneish, The Detection of Earnings Manipulation, Financial Analysts Journal 1999"}
-   ]
-  },
-  {
-   "id": "altman_zscore",
-   "name": "Altman Z-Score 财务困境",
-   "stage": "财务质量",
-   "applies": "cf=有 & disc=有",
-   "blueprints": [],
-   "always_on": [],
-   "trigger": "杠杆高或现金流弱的公司：量化困境概率",
-   "protocol": "①Z=1.2X1+1.4X2+3.3X3+0.6X4+1.0X5（制造业）/Z' 变体（非制造业）②灰区标注③Z<1.8 高危→风险章+假设降档",
-   "sources": [
-    {"tier": "教材·论文", "cite": "Altman, Financial Ratios, Discriminant Analysis and the Prediction of Corporate Bankruptcy, Journal of Finance 1968"}
-   ]
-  },
-  {
-   "id": "event_study",
-   "name": "事件研究",
-   "stage": "催化剂",
-   "applies": "data=kline",
-   "blueprints": [],
-   "always_on": [],
-   "trigger": "催化剂时间线需要历史事件的量价佐证时",
-   "protocol": "①同类历史事件定窗口（T-5~T+20）②超额收益/波动统计③样本量与显著性标注（类比≠预言）",
-   "sources": [
-    {"tier": "教材·论文", "cite": "MacKinlay, Event Studies in Economics and Finance, Journal of Economic Literature 1997"}
-   ]
-  },
-  {
-   "id": "kelly_position",
-   "name": "仓位测算",
-   "stage": "仓位",
-   "applies": "data=kline",
-   "blueprints": [],
-   "always_on": [],
-   "trigger": "投资建议需要分投资者类型给仓位提示时",
-   "protocol": "①由中枢/区间与置信度推不对称赔率②Kelly f*=bp-q 折半（半 Kelly 风控惯例）③只作'仓位提示'上限参考，写明假设",
-   "sources": [
-    {"tier": "机构方法论", "cite": "Ed Thorp 实践的 Kelly 准则仓位管理（半 Kelly 惯例）"},
-    {"tier": "教材·论文", "cite": "Kelly, A New Interpretation of Information Rate, Bell System Technical Journal 1956"}
-   ]
-  },
-  {
-   "id": "moat_scoring",
-   "name": "五源护城河评级",
-   "stage": "预测前",
-   "applies": "cf=有 & disc=有",
-   "blueprints": ["equity_deep_8ch"],
-   "always_on": [],
-   "trigger": "业务拆解章做竞争优势分析时：结构化护城河评级替代散文式论述",
-   "protocol": "①网络效应/无形资产/成本优势/转换成本/有效规模逐项评 无/窄/宽 ②每项≥1 可溯源证据数字③无护城河来源的柱禁入论点树",
-   "sources": [
-    {"tier": "机构方法论", "cite": "Morningstar 经济护城河评级方法论（Pat Dorsey《The Little Book that Builds Wealth》）"}
-   ]
-  },
-  {
-   "id": "factor_attribution",
-   "name": "多因子归因",
-   "stage": "复盘",
-   "applies": "data=kline",
-   "blueprints": [],
-   "always_on": [],
-   "trigger": "复盘结论命中/失误时：归因到风格/行业/个体",
-   "protocol": "①收益分解（市场β+风格因子+残差α）②残差与论点对照③失误归因进 error_patterns",
-   "sources": [
-    {"tier": "机构方法论", "cite": "MSCI Barra 多因子风险归因体系"}
-   ]
-  },
-  {
-   "id": "five_whys",
-   "name": "五问归因",
-   "stage": "复盘",
-   "applies": "true",
-   "blueprints": [],
-   "always_on": [],
-   "trigger": "drill 追问失误结论时：连问五层为什么",
-   "protocol": "①从失误表象连问 5 Why 到方法层根因②根因映射到技法/数据源/流程改进项③写进 80_reflection",
-   "sources": [
-    {"tier": "机构方法论", "cite": "Toyota 生产系统 5 Why 根因分析"}
-   ]
-  },
-  {
-   "id": "admiralty_grading",
-   "name": "信源可靠性分级",
-   "stage": "数据质量",
-   "applies": "true",
-   "blueprints": [],
-   "always_on": [],
-   "trigger": "关键论断依赖非一手数据（论坛/媒体/社区记录）时",
-   "protocol": "①信源按 Admiralty 码评级（可靠性 A~F × 可信度 1~6）②低级信源支撑的论断降标签或进盲区③附录数据表带评级列",
-   "sources": [
-    {"tier": "机构方法论", "cite": "NATO Admiralty Code 信源评价体系（情报界标准）"}
-   ]
-  }
- ],
- "auto": []
+  "version": 3,
+  "note": "分析技法注册表（v3.0）：技法不全部使用——编排器每到挂点调 technique_lib.recommend() 取候选，自主决定激活（每挂点≤3，必填理由进 flow_log）。always_on 为按流程级别强制项。挂点无合适方法论时走 technique_lib.propose_auto() 自动扩充进 auto 区（证据门槛：≥1 来源，优先级 机构方法论>教材·论文>GitHub·业界实践，上限 20 条）。技法协议正文见 reference/analysis-techniques.md。",
+  "stages": [
+    "预测前",
+    "假设校验",
+    "分歧",
+    "情景",
+    "财务质量",
+    "风险",
+    "催化剂",
+    "仓位",
+    "复盘",
+    "数据质量",
+    "行业驱动"
+  ],
+  "tiers": [
+    "机构方法论",
+    "教材·论文",
+    "GitHub·业界实践"
+  ],
+  "core": [
+    {
+      "id": "premortem",
+      "name": "事前验尸",
+      "stage": "预测前",
+      "applies": "true",
+      "blueprints": [],
+      "always_on": [
+        "full"
+      ],
+      "trigger": "进入盈利预测/供需平衡建模之前：假设报告结论 12 个月后被打脸，逼出失败路径",
+      "protocol": "①列 3~5 条最可能死因（含可观测先行信号）②每条标注影响路径与受害假设 ③喂风险章预警信号+假设有效性表失效信号+review_triggers",
+      "sources": [
+        {
+          "tier": "机构方法论",
+          "cite": "CIA《Structured Analytic Techniques》PH 事前验尸规程"
+        },
+        {
+          "tier": "教材·论文",
+          "cite": "Gary Klein, Performing a Project Premortem, Harvard Business Review 2007"
+        }
+      ]
+    },
+    {
+      "id": "base_rate_outside_view",
+      "name": "基础比率外部视角",
+      "stage": "假设校验",
+      "applies": "true",
+      "blueprints": [],
+      "always_on": [
+        "full",
+        "standard"
+      ],
+      "trigger": "任何增长/改善类假设打 [推断] 标签时：必须锚定参考类历史分布，否则降级 [观点]",
+      "protocol": "①为增长假设找参考类（行业历史增速分布/同类公司达成率）②假设值对照 base rate 写明偏离理由 ③forecast_lib.Assumption.base_rate_ref 必填（缺→自动降级[观点]）④报告 divergent_views 章含基础比率对比表",
+      "sources": [
+        {
+          "tier": "教材·论文",
+          "cite": "Daniel Kahneman《Thinking, Fast and Slow》外部视角章"
+        },
+        {
+          "tier": "机构方法论",
+          "cite": "Flyvbjerg 参考类预测（英国交通部 DfT / 丹麦重大项目管理强制方法论）"
+        }
+      ]
+    },
+    {
+      "id": "key_assumptions_check",
+      "name": "关键假设清单核对",
+      "stage": "假设校验",
+      "applies": "true",
+      "blueprints": [],
+      "always_on": [],
+      "trigger": "假设数量多（>8 条）或假设间存在依赖链时：先核对假设清单再进入质询",
+      "protocol": "①枚举全部显式+隐含假设②按敏感性×不确定性排序取 Top 决策相关假设③隐含假设显式化进假设表",
+      "sources": [
+        {
+          "tier": "机构方法论",
+          "cite": "CIA《Structured Analytic Techniques》Key Assumptions Check"
+        }
+      ]
+    },
+    {
+      "id": "delphi_estimate",
+      "name": "独立估计聚合（单遍）",
+      "stage": "假设校验",
+      "applies": "true",
+      "blueprints": [],
+      "always_on": [],
+      "trigger": "关键参数（增速/WACC/溢价率）分歧大且无权威锚时：一次给出低/中/高三档独立估计再聚合",
+      "protocol": "①一次写出低/中/高三档估计+理由（不反复迭代）②取中位/区间③分歧>20% 标记为高不确定性写入风险章",
+      "sources": [
+        {
+          "tier": "机构方法论",
+          "cite": "RAND Corporation Delphi Method（匿名多轮独立估计）"
+        }
+      ]
+    },
+    {
+      "id": "ach_matrix",
+      "name": "竞争性假设矩阵",
+      "stage": "分歧",
+      "applies": "true",
+      "blueprints": [],
+      "always_on": [],
+      "trigger": "dispute_analysis 触发（方法分歧>20%/区间不重叠）或存在多个互斥解读时",
+      "protocol": "①列假设集（估值方法结论/读法）②逐证据打 一致/不一致/无关 ③按'最少不一致'排序而非多数证据④矩阵表进分歧章节+诊断性证据标注",
+      "sources": [
+        {
+          "tier": "机构方法论",
+          "cite": "Richards Heuer《Psychology of Intelligence Analysis》Ch.8 ACH；CIA Tradecraft Primer"
+        }
+      ]
+    },
+    {
+      "id": "scenario_2x2",
+      "name": "2×2 情景推演",
+      "stage": "情景",
+      "applies": "true",
+      "blueprints": [
+        "equity_deep_8ch",
+        "rental_asset",
+        "asset_research"
+      ],
+      "always_on": [],
+      "trigger": "联合脆弱质询暴露两个强相关核心不确定驱动时：替代线性三档",
+      "protocol": "①取两个最关键不确定驱动为轴②四象限各给叙事+估值影响③每情景配先行指标④情景权重→weighted_synthesis 敏感性",
+      "sources": [
+        {
+          "tier": "机构方法论",
+          "cite": "Shell 情景规划双驱动轴法；Peter Schwartz《The Art of the Long View》"
+        },
+        {
+          "tier": "教材·论文",
+          "cite": "Paul Schoemaker《Profiting from Uncertainty》"
+        }
+      ]
+    },
+    {
+      "id": "tornado_sensitivity",
+      "name": "龙卷风敏感性排序",
+      "stage": "情景",
+      "applies": "cf=有 | cf=租金型",
+      "blueprints": [],
+      "always_on": [],
+      "trigger": "估值敏感性表参数多（>5 个）时：先排序再画表",
+      "protocol": "①逐参数±档位重跑中枢②按影响幅度降序排龙卷风图③Top2 参数进 flip_point 联合分析",
+      "sources": [
+        {
+          "tier": "教材·论文",
+          "cite": "Damodaran《Investment Valuation》敏感性分析章"
+        },
+        {
+          "tier": "机构方法论",
+          "cite": "估值实践中龙卷风图标准做法（咨询/卖方建模规范）"
+        }
+      ]
+    },
+    {
+      "id": "indicators_signposts",
+      "name": "先行指标与路标",
+      "stage": "风险",
+      "applies": "true",
+      "blueprints": [],
+      "always_on": [],
+      "trigger": "情景/预测落地依赖可观测信号时：为每个关键假设配先行指标",
+      "protocol": "①每个核心假设列 2~3 个可观测先行指标（频率+数据源+警戒线）②进投资建议跟踪指标清单与 review_triggers",
+      "sources": [
+        {
+          "tier": "机构方法论",
+          "cite": "情景规划 signposts/tripwires 规程（Shell/GBN）"
+        }
+      ]
+    },
+    {
+      "id": "inversion",
+      "name": "逆向思维",
+      "stage": "风险",
+      "applies": "true",
+      "blueprints": [],
+      "always_on": [],
+      "trigger": "风险章只列得出'行业风险'式口号时：反向问'怎样必然亏'",
+      "protocol": "①列出'保证这笔投资失败'的行为/条件清单②反向推导规避动作③与风险章互查缺口",
+      "sources": [
+        {
+          "tier": "教材·论文",
+          "cite": "Charlie Munger 逆向思维（Jacobi 'Invert, always invert'）"
+        }
+      ]
+    },
+    {
+      "id": "reverse_stress_test",
+      "name": "反压力测试",
+      "stage": "风险",
+      "applies": "true",
+      "blueprints": [],
+      "always_on": [],
+      "trigger": "结论稳健性存疑或背反记录产生时：反推什么情景杀死结论",
+      "protocol": "①从'结论失效'出发反推参数组合②找出杀死结论的最小参数变动（衔接 flip_point）③若情景合理概率>10% 必须写进风险章并下调置信度",
+      "sources": [
+        {
+          "tier": "机构方法论",
+          "cite": "欧洲央行 ECB/英国 FSA 反压力测试监管方法论"
+        }
+      ]
+    },
+    {
+      "id": "second_order_effects",
+      "name": "二阶效应分析",
+      "stage": "行业驱动",
+      "applies": "true",
+      "blueprints": [],
+      "always_on": [],
+      "trigger": "行业分析含政策/技术/竞争冲击时：一阶结论后必查二阶反馈",
+      "protocol": "①画驱动→一阶效应→二阶反馈链（含各方博弈反应）②标注反馈是放大/衰减③高杠杆二阶项进风险与情景",
+      "sources": [
+        {
+          "tier": "教材·论文",
+          "cite": "Donella Meadows《Thinking in Systems》系统思考"
+        }
+      ]
+    },
+    {
+      "id": "piotroski_fscore",
+      "name": "Piotroski F-Score",
+      "stage": "财务质量",
+      "applies": "cf=有 & disc=有",
+      "blueprints": [],
+      "always_on": [],
+      "trigger": "财务质量章需要标准化基本面打分时",
+      "protocol": "①9 项二元判据逐项打分（盈利/杠杆/营运效率）②对照行业分布定位③低分项联动净利-现金流匹配检查",
+      "sources": [
+        {
+          "tier": "教材·论文",
+          "cite": "Piotroski, Value Investing: The Use of Historical Financial Statement Information, JAR 2000"
+        }
+      ]
+    },
+    {
+      "id": "beneish_mscore",
+      "name": "Beneish M-Score 操纵信号",
+      "stage": "财务质量",
+      "applies": "cf=有 & disc=有",
+      "blueprints": [],
+      "always_on": [],
+      "trigger": "盈利质量异常（应收/毛利/资产质量指数异动）时",
+      "protocol": "①8 指数计算（DSRI/GMI/AQI/SGI/DEPI/SGAI/LVGI/TATA）②M>-1.78 预警③预警时必须进风险章并核查审计意见",
+      "sources": [
+        {
+          "tier": "教材·论文",
+          "cite": "Beneish, The Detection of Earnings Manipulation, Financial Analysts Journal 1999"
+        }
+      ]
+    },
+    {
+      "id": "altman_zscore",
+      "name": "Altman Z-Score 财务困境",
+      "stage": "财务质量",
+      "applies": "cf=有 & disc=有",
+      "blueprints": [],
+      "always_on": [],
+      "trigger": "杠杆高或现金流弱的公司：量化困境概率",
+      "protocol": "①Z=1.2X1+1.4X2+3.3X3+0.6X4+1.0X5（制造业）/Z' 变体（非制造业）②灰区标注③Z<1.8 高危→风险章+假设降档",
+      "sources": [
+        {
+          "tier": "教材·论文",
+          "cite": "Altman, Financial Ratios, Discriminant Analysis and the Prediction of Corporate Bankruptcy, Journal of Finance 1968"
+        }
+      ]
+    },
+    {
+      "id": "event_study",
+      "name": "事件研究",
+      "stage": "催化剂",
+      "applies": "data=kline",
+      "blueprints": [],
+      "always_on": [],
+      "trigger": "催化剂时间线需要历史事件的量价佐证时",
+      "protocol": "①同类历史事件定窗口（T-5~T+20）②超额收益/波动统计③样本量与显著性标注（类比≠预言）",
+      "sources": [
+        {
+          "tier": "教材·论文",
+          "cite": "MacKinlay, Event Studies in Economics and Finance, Journal of Economic Literature 1997"
+        }
+      ]
+    },
+    {
+      "id": "kelly_position",
+      "name": "仓位测算",
+      "stage": "仓位",
+      "applies": "data=kline",
+      "blueprints": [],
+      "always_on": [],
+      "trigger": "投资建议需要分投资者类型给仓位提示时",
+      "protocol": "①由中枢/区间与置信度推不对称赔率②Kelly f*=bp-q 折半（半 Kelly 风控惯例）③只作'仓位提示'上限参考，写明假设",
+      "sources": [
+        {
+          "tier": "机构方法论",
+          "cite": "Ed Thorp 实践的 Kelly 准则仓位管理（半 Kelly 惯例）"
+        },
+        {
+          "tier": "教材·论文",
+          "cite": "Kelly, A New Interpretation of Information Rate, Bell System Technical Journal 1956"
+        }
+      ]
+    },
+    {
+      "id": "moat_scoring",
+      "name": "五源护城河评级",
+      "stage": "预测前",
+      "applies": "cf=有 & disc=有",
+      "blueprints": [
+        "equity_deep_8ch"
+      ],
+      "always_on": [],
+      "trigger": "业务拆解章做竞争优势分析时：结构化护城河评级替代散文式论述",
+      "protocol": "①网络效应/无形资产/成本优势/转换成本/有效规模逐项评 无/窄/宽 ②每项≥1 可溯源证据数字③无护城河来源的柱禁入论点树",
+      "sources": [
+        {
+          "tier": "机构方法论",
+          "cite": "Morningstar 经济护城河评级方法论（Pat Dorsey《The Little Book that Builds Wealth》）"
+        }
+      ]
+    },
+    {
+      "id": "factor_attribution",
+      "name": "多因子归因",
+      "stage": "复盘",
+      "applies": "data=kline",
+      "blueprints": [],
+      "always_on": [],
+      "trigger": "复盘结论命中/失误时：归因到风格/行业/个体",
+      "protocol": "①收益分解（市场β+风格因子+残差α）②残差与论点对照③失误归因进 error_patterns",
+      "sources": [
+        {
+          "tier": "机构方法论",
+          "cite": "MSCI Barra 多因子风险归因体系"
+        }
+      ]
+    },
+    {
+      "id": "five_whys",
+      "name": "五问归因",
+      "stage": "复盘",
+      "applies": "true",
+      "blueprints": [],
+      "always_on": [],
+      "trigger": "drill 追问失误结论时：连问五层为什么",
+      "protocol": "①从失误表象连问 5 Why 到方法层根因②根因映射到技法/数据源/流程改进项③写进 80_reflection",
+      "sources": [
+        {
+          "tier": "机构方法论",
+          "cite": "Toyota 生产系统 5 Why 根因分析"
+        }
+      ]
+    },
+    {
+      "id": "admiralty_grading",
+      "name": "信源可靠性分级",
+      "stage": "数据质量",
+      "applies": "true",
+      "blueprints": [],
+      "always_on": [],
+      "trigger": "关键论断依赖非一手数据（论坛/媒体/社区记录）时",
+      "protocol": "①信源按 Admiralty 码评级（可靠性 A~F × 可信度 1~6）②低级信源支撑的论断降标签或进盲区③附录数据表带评级列",
+      "sources": [
+        {
+          "tier": "机构方法论",
+          "cite": "NATO Admiralty Code 信源评价体系（情报界标准）"
+        }
+      ]
+    }
+  ],
+  "auto": []
 }

@@ -167,39 +167,6 @@ def provenance_table(doc, results, font_size=8.5):
               rows, col_widths=[3.2, 4.2, 4.2, 2.2, 2.2], font_size=font_size)
 
 
-def socratic_stats_table(doc, stats, font_size=9):
-    """附录·审计统计表（单次审计）：stats={rounds, total, settled, revised, unknown, antinomy, rejected...}。"""
-    rows = [
-        ['审计轮数（上限 2）', str(stats.get('rounds', 0))],
-        ['质询总数', str(stats.get('total', 0))],
-        ['数据裁决（[实证]）', str(stats.get('settled', 0))],
-        ['立论修正', str(stats.get('revised', 0))],
-        ['留白（已知未知）', str(stats.get('unknown', 0))],
-        ['二律背反记录', str(stats.get('antinomy', 0))],
-        ['驳回（不合准入）', str(stats.get('rejected', 0))],
-    ]
-    if stats.get('readiness_issues'):
-        rows.append(['火力下限', '；'.join(stats['readiness_issues'])])
-    if stats.get('coverage_missing'):
-        rows.append(['覆盖缺口', '；'.join(str(x) for x in stats['coverage_missing'])])
-    add_table(doc, ['审计指标', '数量/说明'], rows, col_widths=[6, 4], font_size=font_size)
-
-
-def manager_stats_table(doc, stats, font_size=9):
-    """附录·管理员审问统计表（PUA 逐章"你都写了啥"，manager_log.stats() 输出）。"""
-    rows = [
-        ['审问人设', str(stats.get('persona', 'P7'))],
-        ['审过章节', str(stats.get('sections', 0))],
-        ['审问次数', str(stats.get('checkpoints', 0))],
-        ['追问总数', str(stats.get('questions', 0))],
-        ['过关', str((stats.get('by_verdict') or {}).get('过关', 0))],
-        ['补证据', str((stats.get('by_verdict') or {}).get('补证据', 0))],
-        ['驳回重写', str((stats.get('by_verdict') or {}).get('驳回重写', 0))],
-        ['转审计未决', str(stats.get('escalated', 0))],
-    ]
-    add_table(doc, ['管理员审问', '统计'], rows, col_widths=[6, 4], font_size=font_size)
-
-
 def _head_marker(text):
     """导出文本的标题级别标记（与 check_report_depth 的标题识别同源）。"""
     if re.match(r'^第[一二三四五六七八九十]+章', text):

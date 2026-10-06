@@ -1,38 +1,27 @@
 # -*- coding: utf-8 -*-
-"""论点树（thesis_lib）——报告核心论证的显式骨架，贯穿写作与质询。
+"""论点树（thesis_lib）——报告核心论证的显式骨架，贯穿写作与审阅。
 
 树 = 核心结论 + 3~5 承重柱（每柱带证据映射到 章节/图表/数据文件）。
 用途：
-- 第 9a 步建树：写作遵循树（每柱在正文有落点，证据映射到具体图表/数据）
-- 单次审计：审计员通读重建树 → 检查"报告↔树"一致 + "树↔数据"质疑
-- 质询承重清单：load_bearing_claims = 承重柱 + 核心结论（从树取，不手挑）
-- 反方章节：pillar_status() 产出"承重柱状态总览"（加固/留白/背反/存疑/未质询）
+- 建树：写作遵循树（每柱在正文有落点，证据映射到具体图表/数据）
+- 更新报告/复盘：tree_diff 对照新旧树的结论与承重柱差异
 
 用法：
-    from thesis_lib import build_thesis, validate_thesis, save_thesis, load_thesis, pillar_status
+    from thesis_lib import build_thesis, validate_thesis, save_thesis, load_thesis
     th = build_thesis(subject='XX股份',
                       conclusion='增持：合理区间 10~14 元（中枢 12 元）',
                       pillars=[
                         {'claim': '2028年EPS 2.6元（forecast 中性档）',
                          'probability': 0.6,
-                         'evidence': [{'chapter': 'ch4', 'fig': None,
-                                       'data_file': 'data/forecast_xx.json'}]},
-                        {'claim': '可比公司 PE 中枢 10.5 倍',
-                         'probability': 0.7,
-                         'evidence': [{'chapter': 'ch6', 'fig': 'fig6_peers',
-                                       'data_file': 'data/quotes.json'}]},
+                         'evidence': [{'chapter': 'ch4', 'data_file': 'data/forecast_xx.json'}]},
                       ])
     validate_thesis(th); save_thesis(th, 'data/thesis_xx.json')
-    status = pillar_status(th, [single_audit_session])
 """
 import os
-import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fetch_lib import save_json, load_json  # noqa: E402
-
-STATUS_ORDER = ('加固', '背反', '留白', '存疑', '未质询')
 
 
 def build_thesis(subject, conclusion, pillars):
@@ -80,58 +69,6 @@ def load_thesis(path):
     return load_json(path)
 
 
-def _claim_hit(claim, items):
-    """claim 与会话中论断/背反记录的双向包含匹配。"""
-    for it in items:
-        c = it.get('claim') if isinstance(it, dict) else it
-        if not c:
-            continue
-        if claim in c or c in claim:
-            return it
-    return None
-
-
-def pillar_status(th, sessions):
-    """承重柱 × 质询会话 → 状态总览（喂反方章节）。
-
-    sessions: [socratic_session, ...]（字典，含 settled/unknowns/antinomies/challenges）
-    单柱状态优先级：背反 > 留白 > 存疑(幸存未决) > 加固(被数据裁决) > 未质询。
-    """
-    rows = []
-    targets = [{'claim': th['conclusion']}] + list(th.get('pillars') or [])
-    for t in targets:
-        claim = t['claim']
-        row = {'id': t.get('id') or 'conclusion', 'claim': claim, 'status': '未质询',
-               'detail': []}
-        for s in sessions or []:
-            ant = _claim_hit(claim, s.get('antinomies') or [])
-            if ant:
-                row['status'] = '背反'
-                row['detail'].append('背反: %s' % ant.get('cause', ''))
-                continue
-            unk = _claim_hit(claim, s.get('unknowns') or [])
-            if unk:
-                row['status'] = '留白' if row['status'] != '背反' else row['status']
-                row['detail'].append('留白: %s' % (unk.get('note') or unk.get('settling_data_spec') or '')[:60])
-                continue
-            surv = _claim_hit(claim, [c for c in (s.get('challenges') or [])
-                                      if c.get('status') in ('pending', 'revised')])
-            if surv:
-                row['status'] = '存疑' if row['status'] in ('未质询',) else row['status']
-                row['detail'].append('幸存质询: %s' % surv.get('id'))
-                continue
-            stl = _claim_hit(claim, s.get('settled') or [])
-            if stl:
-                if row['status'] == '未质询':
-                    row['status'] = '加固'
-                row['detail'].append('数据裁决: %s' % os.path.basename(stl.get('evidence_file') or ''))
-        rows.append(row)
-    return {'subject': th.get('subject'), 'conclusion': th.get('conclusion'),
-            'pillars': rows,
-            'summary': {st: sum(1 for r in rows if r['status'] == st)
-                        for st in STATUS_ORDER}}
-
-
 def tree_diff(built, reconstructed):
     """建的树 vs 审核员重建的树 → 结构化对照（报告↔树一致性）。
 
@@ -157,24 +94,3 @@ def tree_diff(built, reconstructed):
              if not any(r in c or c in r for c in matched_claims)]
     return {'conclusion_match': conc_match,
             'matched': matched, 'missing': missing, 'extra': extra}
-
-
-def revision_checklist(th=None, sessions=None):
-    """审计后修订清单（显式枚举，防漏改）。"""
-    items = ['正文修正（存疑/留白对应章节）',
-             '反方章节更新（单次审计幸存质询 + 同一数字两种读法 + 承重柱状态总览）',
-             '附录审计统计表重生成（含火力/覆盖/门禁三闸自检）',
-             '数字溯源表重生成（若修正引入新数字）']
-    if th is not None:
-        items.append('论点树状态更新（pillar_status 重跑）')
-    if sessions:
-        revs = []
-        for s in sessions:
-            for c in s.get('challenges') or []:
-                r = c.get('response') or {}
-                if c.get('status') == 'revised':
-                    revs.append('%s→%s' % (c.get('target_claim', '')[:30],
-                                           r.get('revised_claim', '')[:30]))
-        if revs:
-            items.append('质询修正核对: %s' % '；'.join(revs[:5]))
-    return items

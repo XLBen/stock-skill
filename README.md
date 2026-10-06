@@ -1,4 +1,4 @@
-# stock-skill · 泛金融报告双命令自动流水线（v3.7）
+# stock-skill · 泛金融报告双命令自动流水线（v3.8 单遍版）
 
 > 一个 [opencode](https://opencode.ai) skill：从"一句话提问"到"带 QA 的 Word 研报"，全程自动。
 > 适合 A股/港美股/基金/利率/地产/加密/收藏品等**任意资产对象**——按资产属性推导方法，而非套模板。
@@ -16,7 +16,7 @@
 | 特性 | 说明 |
 |---|---|
 | **双命令** | 只有 `/grill`（人工问答）与 `/ask`（零人工）；**批准后自动执行到交付**，不需要第二个命令 |
-| **省 token 设计** | 需求 1 波问清；零子代理（不派 Task）；不再跑审计/PUA 环节；篇幅按蓝图降档（full 8000 / standard 6000 / minimal 4000 / update 3000 字符） |
+| **省 token 设计** | 需求单波问清（不再追问）；零子代理（不派 Task）；无审计/PUA/多轮环节；篇幅按蓝图降档（full 8000 / standard 6000 / minimal 4000 / update 3000 字符） |
 | **8 维画像推导** | 现金流/披露/供给/流动性/价格行为等属性 → JSON 规则库谓词匹配出方法集/数据源/报告蓝图；地产禁 PE、手办禁 DCF |
 | **技法注册表** | 20 项分析技法按需激活，每个挂点 ≤3 且必填理由；full 强制 premortem、standard/full 强制基础比率 |
 | **数字由代码算** | 预测/估值只出自 `forecast_lib`/`valuation_lib` 算子，LLM 手算即违规；假设必带证据链与基础比率锚 |
@@ -52,7 +52,7 @@ pip install -r stock-skill/.opencode/skill/stock-analysis/requirements.txt
 
 ## 流水线（批准后自动执行，异常自动归宿）
 
-1. brief：`/grill` 问询或 `/ask` 自推导 → `brief.json`（1~2 波）
+1. brief：`/grill` 单波问清或 `/ask` 自推导 → `brief.json`（含糊答案兜底进盲区）
 2. 画像推导 + 技法候选（`profile_lib.derive` + `technique_lib.recommend`）
 3. 主上下文抓数（缓存优先）+ `FACTS.md` 中性事实清单**冻结**
 4. 预测建模 + 估值（`forecast_lib`/`valuation_lib`，数字由代码算）+ `thesis_lib` 建树
@@ -75,7 +75,7 @@ pip install -r stock-skill/.opencode/skill/stock-analysis/requirements.txt
 .opencode/
 ├── command/                    # /grill /ask（只有两个）
 └── skill/stock-analysis/
-    ├── SKILL.md                # 主协议（v3.7 双命令自动流水线）
+    ├── SKILL.md                # 主协议（v3.8 双命令单遍流水线）
     ├── CHANGELOG.md
     ├── requirements.txt
     ├── scripts/                # Python 库（工作区/brief/技法/抓数/预测/估值/QA/图表/排版）

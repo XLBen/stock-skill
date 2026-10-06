@@ -11,8 +11,8 @@
 - cache_status / check_storage / check_delivery（离线）
 - forecast_lib：盈利预测/NOI/裸（估）拦截/情景表
 - valuation_lib：算子批量运行/交叉验证/翻车点/溯源行
-- socratic_lib：质询准入三规则/三种回应/二律背反/停滞判定
 - review_lib：档案落档/判定/校准率（save_stage 自动落档）
+- brief_lib：单波需求书/必填校验/自我批准；technique_lib：推荐/激活/自动扩充
 - check_report_depth v2：蓝图必备章/数字溯源抽查
 - 联网：Damodaran 抓取、研报列表抓取、研报取证抽样（--offline 跳过）
 """
@@ -639,49 +639,6 @@ def test_valuation_crosscheck_flip():
     expect(res == [] and sk, 'ctx 为空时应全部跳过而非崩溃')
 
 
-# ==================== socratic_lib ====================
-
-def test_socratic_flow():
-    import socratic_lib as sl
-    os.makedirs(TMP, exist_ok=True)
-    ev = os.path.join(TMP, 'ev.json')
-    json.dump({'v': 1}, open(ev, 'w', encoding='utf-8'))
-    s = sl.new_session('测试', ['EPS 2028=2.6元', '区间10~13元'])
-    adm = sl.submit_challenges(s, [
-        {'target_claim': 'EPS 2028=2.6元', 'type': '证据',
-         'settling_data_spec': '分部营收毛利率', 'severity': '高'},
-        {'target_claim': '封面难看', 'type': '证据', 'settling_data_spec': 'x'},
-        {'target_claim': 'EPS 2028=2.6元', 'type': '因果', 'settling_data_spec': 'y'}])
-    expect(len(adm) == 2, '不打承重墙应被拒: %s' % [c['id'] for c in adm])
-    try:
-        sl.defend(s, adm[0]['id'], 'data', evidence_file=os.path.join(TMP, 'nope.json'))
-        raise AssertionError('不存在的证据文件应拒绝')
-    except ValueError:
-        pass
-    sl.defend(s, adm[0]['id'], 'data', evidence_file=ev, note='东财F10财报数据佐证')
-    dup = sl.submit_challenges(s, [{'target_claim': 'EPS 2028=2.6元', 'type': '证据',
-                                    'settling_data_spec': '分部营收毛利率'}])
-    expect(len(dup) == 0, '一事不再理/重复应被拒')
-    go, _ = sl.should_continue(s)
-    expect(go, '仍有 pending（因果质询）应继续')
-    sl.defend(s, adm[1]['id'], 'revise', revised_claim='EPS 2028=2.3元', note='并表因素已从预测剔除')
-    a2 = sl.submit_challenges(s, [{'target_claim': 'EPS 2028=2.3元', 'type': '反例',
-                                   'settling_data_spec': '可比公司预测', 'severity': '高'}])
-    sl.defend(s, a2[0]['id'], 'unknown', note='可比预测数据不可得')
-    st = sl.stats(s)
-    expect(st['settled'] == 1 and st['unknown'] >= 1, '统计应含数据裁决与留白: %s' % st)
-    a3 = sl.submit_challenges(s, [{'target_claim': '区间10~13元', 'type': '反事实',
-                                   'settling_data_spec': '利率+100bp DDM', 'severity': '高'}])
-    sl.defend(s, a3[0]['id'], 'unknown', note='历史区间数据不可得')
-    expect(len(s['antinomies']) == 0 or all(a['impact'] for a in s['antinomies']), '背反记录应完整')
-    a4 = sl.submit_challenges(s, [{'target_claim': '区间10~13元', 'type': '口径',
-                                   'settling_data_spec': '前复权口径', 'severity': '中'}])
-    sl.defend(s, a4[0]['id'], 'unknown', note='口径数据仍不可得')
-    expect(len(s['antinomies']) >= 1, '同论点两轮无数据裁决应触发背反: %s' % s['antinomies'])
-    ex = sl.export_for_report(s)
-    expect('stats' in ex and 'surviving' in ex, '报告导出应含统计与幸存质询')
-
-
 # ==================== review_lib ====================
 
 def test_review_dossier():
@@ -748,16 +705,6 @@ def test_thesis_lib():
         raise AssertionError('无证据映射的柱应拒绝')
     except ValueError:
         pass
-    import socratic_lib as sl
-    s = sl.new_session('XX', [th['pillars'][0]['claim']])
-    adm = sl.submit_challenges(s, [{'target_claim': th['pillars'][0]['claim'], 'type': '反例',
-                                    'settling_data_spec': '可比公司', 'severity': '高'}])
-    sl.defend(s, adm[0]['id'], 'unknown', note='可比公司预测数据不可得')
-    st = tl.pillar_status(th, [s])
-    expect(st['summary']['留白'] >= 1, '留白应被统计: %s' % st['summary'])
-    expect(any(r['claim'] == th['conclusion'] for r in st['pillars']), '总览应含核心结论')
-    cl = tl.revision_checklist(th, [s])
-    expect(any('反方章节' in i for i in cl), '修订清单应含反方章节更新')
 
 
 def test_weighted_synthesis():
@@ -807,17 +754,7 @@ def test_dossier_code_key_and_judgment():
             os.remove(p)
 
 
-def test_joint_fragility_and_dump_markers():
-    import socratic_lib as sl
-    s = sl.new_session('联合', ['EPS与PE假设组合'])
-    adm = sl.submit_challenges(s, [{'target_claim': 'EPS与PE假设组合', 'type': '联合脆弱',
-                                    'settling_data_spec': '相关性矩阵/联合情景回测',
-                                    'argument': '各假设70%≠联合70%'}])
-    expect(len(adm) == 1, '联合脆弱类应准入')
-    sl.defend(s, adm[0]['id'], 'revise', revised_claim='EPS与PE联合概率下调至50%',
-              note='相关性下联合概率重算', assumption_ref='forecast.growth_main')
-    expect(sl.revised_assumption_claims(s)[0]['assumption_ref'] == 'forecast.growth_main',
-           '回流查询应识别 assumption_ref')
+def test_dump_markers():
     doc = dh.new_document()
     dh.para(doc, '第一章 公司概况')
     dh.para(doc, '1.1 业务构成')
@@ -849,35 +786,17 @@ def test_trace_missing_files_fail():
            '含估值数字而无算子输出文件应 FAIL: %s' % r['errors'])
 
 
-def test_quality_heuristics_and_flow_log():
-    import socratic_lib as sl
+def test_flow_log():
     import flow_log as flw
     os.makedirs(TMP, exist_ok=True)
-    s = sl.new_session('质检', ['ROE提升体现质量改善'])
-    adm = sl.submit_challenges(s, [
-        {'target_claim': 'ROE提升体现质量改善', 'type': '替代解读',
-         'settling_data_spec': '杜邦分解', 'crux': '有区别',
-         'argument': '敷衍 crux'}])
-    expect(len(adm) == 0, '低质量 crux 应被驳回')
-    adm = sl.submit_challenges(s, [
-        {'target_claim': 'ROE提升体现质量改善', 'type': '替代解读',
-         'settling_data_spec': '杜邦分解',
-         'crux': '质量读法预言毛利率改善；杠杆读法预言负债率上行——查杜邦三因子可分辨',
-         'argument': '未拆解三因子'}])
-    expect(len(adm) == 1, '合格 crux 应受理')
-    try:
-        sl.defend(s, adm[0]['id'], 'unknown', note='不行')
-        raise AssertionError('过短 note 应拒绝')
-    except ValueError:
-        pass
     log = flw.FlowLog('自测-scope')
     import time as _t
     with log.step('数据抓取'):
         _t.sleep(0.05)
-    log.event('质询', rounds=2, settled=3, backflow=1)
+    log.event('估值', rounds=1, settled=3, backflow=0)
     sm = log.summary()
     expect(sm['n_steps'] == 1 and sm['steps'][0]['seconds'] >= 0.05, '步骤耗时应记录')
-    expect(sm['events'][0]['backflow'] == 1, '事件应记录')
+    expect(sm['events'][0]['settled'] == 3, '事件应记录')
     log.save(os.path.join(TMP, 'pipeline_log_test.json'))
 
 
@@ -934,8 +853,7 @@ def test_update_report_derive():
 
 
 
-def test_report_review_tools():
-    import socratic_lib as sl
+def test_dump_doc_text():
     os.makedirs(TMP, exist_ok=True)
     doc = dh.new_document()
     dh.para(doc, '一、投资要点')
@@ -948,56 +866,6 @@ def test_report_review_tools():
     expect('2028年预测EPS' in content, '文本导出应含段落')
     expect('2.6\t10.5' in content or 'EPS\t2.6' in content, '文本导出应含表格行')
     expect(dh.dump_doc_text(doc, txt) == txt, '应支持直接传 Document 对象')
-    s = sl.new_session('校对', ['2028年预测EPS 2.6元（估）'])
-    adm = sl.submit_challenges(s, [
-        {'target_claim': '2028年预测EPS 2.6元（估）', 'type': '数字一致性',
-         'settling_data_spec': '核对 forecast_xx.json central.eps', 'severity': '高'},
-        {'target_claim': '2028年预测EPS 2.6元（估）', 'type': '章节矛盾',
-         'settling_data_spec': '第四章预测表 vs 第六章DCF基数', 'severity': '高'},
-        {'target_claim': '2028年预测EPS 2.6元（估）', 'type': '不存在的类型',
-         'settling_data_spec': 'x'}])
-    expect(len(adm) == 2, '校对专属类型应准入，非法类型应驳回: %s' % [c['id'] for c in adm])
-
-
-def test_interpretation_adversary():
-    import socratic_lib as sl
-    os.makedirs(TMP, exist_ok=True)
-    claim = 'ROE提升至20%体现经营质量改善'
-    old = os.path.join(TMP, 'old_result.json')
-    new_ev = os.path.join(TMP, 'review_r1_01.json')
-    json.dump({'x': 1}, open(old, 'w', encoding='utf-8'))
-    json.dump({'duPont': 'quality'}, open(new_ev, 'w', encoding='utf-8'))
-    s = sl.new_session('解读对抗', [claim])
-    adm = sl.submit_challenges(s, [
-        {'target_claim': claim, 'type': '替代解读',
-         'settling_data_spec': '杜邦分解', 'argument': '或为杠杆驱动'}])
-    expect(len(adm) == 0, '替代解读缺 crux 应驳回')
-    adm = sl.submit_challenges(s, [
-        {'target_claim': claim, 'type': '替代解读',
-         'settling_data_spec': '杜邦分解',
-         'crux': '读法A预言毛利率/周转率改善；读法B预言负债率上行为主驱动',
-         'argument': '未拆解三因子，加息周期下杠杆读法成立'}])
-    expect(len(adm) == 1 and adm[0]['crux'], '带 crux 的替代解读应受理并记录')
-    try:
-        sl.defend(s, adm[0]['id'], 'revise', revised_claim='x')
-        raise AssertionError('无理由回应应拒绝')
-    except ValueError:
-        pass
-    try:
-        sl.defend(s, adm[0]['id'], 'data', evidence_file=old, note='数字没错')
-        raise AssertionError('旧文件不应能裁决解读类质询')
-    except ValueError:
-        pass
-    sl.register_discriminating_evidence(s, new_ev, purpose='杜邦三因子')
-    sl.defend(s, adm[0]['id'], 'data', evidence_file=new_ev,
-              note='周转率+毛利率双升、负债率持平，支持质量读法')
-    expect(len(s['settled']) == 1, '区分性证据应完成裁决')
-    last = s['rounds'][-1]
-    expect('fetches_used' in last and 'fetch_budget' in last, '轮记录应含抓取预算')
-    expect(sl.fetch_budget_left(s) == last['fetch_budget'] - last['fetches_used'],
-           '剩余预算应一致')
-
-
 
 
 def test_report_depth_v2():
@@ -1019,13 +887,6 @@ def test_report_depth_v2():
     expect(not crd._pool_matches(999.7, {2.6, 10.2, 12.4, 14.8}), '杜撰数字不应命中')
     r = crd.check_docx(p, min_words=10, rtype='equity_deep_8ch')
     expect(any('盈利预测' in e for e in r['errors']), 'equity 蓝图应强制盈利预测章: %s' % r['errors'])
-    doc2 = dh.new_document()
-    dh.provenance_table(doc2, [{'method': 'DCF', 'low': 10, 'central': 12, 'high': 14,
-                                'provenance': [{'file': 'a.json', 'field': 'eps',
-                                                'fetched_at': '2026-08-30'}]}])
-    dh.socratic_stats_table(doc2, {'rounds': 2, 'total': 5, 'settled': 2, 'revised': 1,
-                                   'unknown': 1, 'antinomy': 1, 'rejected': 1})
-    expect(len(doc2.tables) == 2, '溯源/质询表应可生成')
 
 
 # ==================== v3.0：工作区/brief/技法/PUA/单次审计/ACH/基础比率 ====================
@@ -1090,14 +951,19 @@ def test_brief_lib():
     qs = [{'id': 'q%d' % i, 'q': '问题%d' % i, 'options': ['A', 'B']} for i in range(5)]
     try:
         blf.record_wave(b, qs[:3], [], decisions=[])
-        raise AssertionError('首波 <5 问应报错')
+        raise AssertionError('<5 问应报错')
     except ValueError:
         pass
     blf.record_wave(b, qs, [{'question_id': 'q1', 'answer': '深度研究'}],
                     decisions=[{'field': 'report_type', 'value': '深度研究'}])
     expect(blf.vague_hits('再深度一点，差不多就行') != [], '模糊词应被检出')
     stop, why = blf.termination_check(b)
-    expect(not stop, '未达终止条件应继续')
+    expect(stop and '单波' in why, '单波协议问完即止: %s' % why)
+    try:
+        blf.record_wave(b, qs, [], decisions=[])
+        raise AssertionError('第二波应报错（单波协议）')
+    except ValueError:
+        pass
     ok, missing = blf.validate_brief(b)
     expect(not ok and '读者' in ';'.join(missing), '缺必填字段应被列出')
     try:
@@ -1113,10 +979,6 @@ def test_brief_lib():
         b['fields'][field] = val
     ok, missing = blf.validate_brief(b)
     expect(ok, '补全后应通过: %s' % missing)
-    blf.record_wave(b, qs, [{'question_id': 'q1', 'answer': '够了'}], decisions=[])
-    stop, _ = blf.termination_check(b)
-    expect(stop, '用户"够了"应终止')
-    b['waves'][-1]['answers'] = [{'question_id': 'q1', 'answer': '深度研究'}]
     blf.approve(b)
     expect(b['approval']['approved'], '批准态应记录')
     expect('需求摘要' in blf.summary(b), '摘要应可生成')
@@ -1168,88 +1030,6 @@ def test_technique_lib():
     expect(len(d['auto']) == 1 and d['auto'][0]['origin'] == 'auto', 'auto 区应写入')
     auto_cands = tcl.recommend(p, stage='风险', path=tpath)
     expect('test_auto_tech' in [c['id'] for c in auto_cands], 'auto 技法应可被推荐')
-
-
-def test_manager_log():
-    from manager_log import ManagerLog
-    ml = ManagerLog(scope='7_测试', persona='P9')
-    ml.checkpoint('ch3', summary='量价拆分：主业营收 87 亿（fin_x.json），支撑 EPS 柱',
-                  questions=[{'q': '87 亿哪来的', 'a': '00_cache/fin_x.json'},
-                             {'q': 'So what', 'a': 'EPS 预测的量基'},
-                             {'q': '删了立得住吗', 'a': '立不住'}], verdict='过关')
-    ml.checkpoint('ch4', summary='预测假设缺依据', questions=[{'q': '增速 12% 哪来的', 'a': '我估的'}],
-                  verdict='驳回重写')
-    ml.checkpoint('ch4', summary='重写后仍缺', questions=[{'q': '增速哪来的', 'a': '还是缺'}],
-                  verdict='驳回重写')
-    expect(ml.escalated_sections() == ['ch4'], '同章二次驳回应转审计未决')
-    st = ml.stats()
-    expect(st['checkpoints'] == 3 and st['escalated'] == 1, '统计应含转审计: %s' % st)
-    try:
-        ml.checkpoint('ch5', summary='x', questions=[{'q': str(i)} for i in range(4)], verdict='过关')
-        raise AssertionError('专业问 >3 应报错')
-    except ValueError:
-        pass
-    # v3.2：专业 ≤3 + 通俗 ≤2
-    ml2 = ManagerLog(scope='v32', persona='P7')
-    ml2.checkpoint('ch1', summary='复述', questions=[
-        {'q': '87 亿哪来的', 'a': '00_cache/fin_x.json', 'kind': 'pro'},
-        {'q': '比喻 PE 像房租回本会误导吗', 'a': '已带仅为助记免责', 'kind': 'plain'},
-        {'q': '小白问：营收涨利润为何降', 'a': 'FAQ 框已答', 'kind': 'plain'}], verdict='过关')
-    try:
-        ml2.checkpoint('ch2', summary='x', questions=[
-            {'q': 'a', 'a': 'b', 'kind': 'plain'},
-            {'q': 'c', 'a': 'd', 'kind': 'plain'},
-            {'q': 'e', 'a': 'f', 'kind': 'plain'}], verdict='过关')
-        raise AssertionError('通俗问 >2 应报错')
-    except ValueError:
-        pass
-
-
-def test_single_audit():
-    import socratic_lib as sl
-    os.makedirs(TMP, exist_ok=True)
-    ev = os.path.join(TMP, 'ev_audit.json')
-    json.dump({'v': 1}, open(ev, 'w', encoding='utf-8'))
-    claims = ['EPS 2028=2.6元', '可比PE中枢10.5倍', '行业格局改善', '提价可持续']
-    s = sl.new_session('编号N·单次审计', claims, mode='single_audit')
-    expect(s['config']['max_rounds'] == 2, '单次审计默认轮次上限 2')
-    chs = [{'target_claim': c, 'type': '证据', 'settling_data_spec': 'spec', 'severity': '高'}
-           for c in claims]
-    chs[1] = {'target_claim': '可比PE中枢10.5倍', 'type': '替代解读',
-              'settling_data_spec': '可比分布', 'crux': '读法A预言估值抬升伴随盈利上修；读法B预言流动性驱动无盈利支撑——查可比盈利修正方向可分辨', 'severity': '高'}
-    adm = sl.submit_challenges(s, chs)
-    expect(len(adm) == 4, '四柱质询应全部受理: %s' % [c['id'] for c in adm])
-    expect(s['round_counter'] == 1, 'R1 计数')
-    rd = sl.audit_readiness(s, 'full')
-    expect(rd['ok'], 'full 级火力下限应满足: %s' % rd['issues'])
-    gate = sl.audit_gate(s)
-    expect(not gate['pass'], '高严重度 pending 应拦截终稿')
-    sl.defend(s, adm[0]['id'], 'data', evidence_file=ev, note='F10 财务数据佐证 EPS 柱')
-    sl.defend(s, adm[1]['id'], 'revise', revised_claim='可比PE中枢10.5倍（盈利上修口径）',
-              note='并表口径剔除后中枢上修', assumption_ref='pe_anchor')
-    sl.defend(s, adm[2]['id'], 'data', evidence_file=ev, note='行业集中度数据佐证')
-    sl.defend(s, adm[3]['id'], 'unknown', note='提价跟随数据不可得，留白')
-    expect(sl.audit_gate(s)['pass'], '全部归宿后门禁应通过')
-    ra = sl.revised_assumption_claims(s)
-    expect(ra and ra[0]['assumption_ref'] == 'pe_anchor', 'H1 回流清单应含 assumption_ref')
-    go, _ = sl.should_continue(s)
-    expect(go, 'R1 后存在未质询的修正论点 → 应进 R2 核验')
-    a2 = sl.submit_challenges(s, [{'target_claim': '可比PE中枢10.5倍（盈利上修口径）',
-                                   'type': '反事实', 'settling_data_spec': '联合下修情景',
-                                   'severity': '中'}])
-    expect(s['round_counter'] == 2 and len(a2) == 1, 'R2 应只审修正论点')
-    sl.defend(s, a2[0]['id'], 'unknown', note='联合情景数据不可得，留白')
-    go, why = sl.should_continue(s)
-    expect(not go, 'R2 后应强制收束: %s' % why)
-    cov = sl.audit_coverage(s)
-    expect(cov['ok'], '四柱全部覆盖应通过: %s' % cov['missing'])
-    th = {'conclusion': '提价可持续', 'pillars': [{'claim': 'EPS 2028=2.6元'}, {'claim': '新柱无质询'}]}
-    cov2 = sl.audit_coverage(s, th)
-    expect(not cov2['ok'] and cov2['missing'] == ['新柱无质询'], '未覆盖柱应报缺失')
-    sl.exempt_pillar(s, '新柱无质询', reason='R2 证据文件已覆盖其数据链，免检理由充分')
-    expect(sl.audit_coverage(s, th)['ok'], '书面免检后覆盖应通过')
-    ck = sl.audit_checklist(s)
-    expect(ck['gate']['pass'] and ck['rounds_used'] == 2, '自检清单应汇总三闸: %s' % ck)
 
 
 def test_ach_matrix():
@@ -1372,16 +1152,14 @@ def main():
                  test_check_report_depth, test_depth_plain_checks]
     fc_tests = [test_forecast_equity, test_forecast_rental_and_balance]
     val_tests = [test_valuation_operators, test_valuation_crosscheck_flip]
-    soc_tests = [test_socratic_flow, test_interpretation_adversary]
     rev_tests = [test_review_dossier]
     thesis_tests = [test_thesis_lib, test_weighted_synthesis,
-                    test_dossier_code_key_and_judgment, test_joint_fragility_and_dump_markers,
-                    test_quality_heuristics_and_flow_log,
+                    test_dossier_code_key_and_judgment, test_dump_markers, test_flow_log,
                     test_tree_diff_pdf_asof_error_patterns, test_update_report_derive]
-    v2_tests = [test_report_depth_v2, test_report_review_tools, test_trace_missing_files_fail]
+    v2_tests = [test_report_depth_v2, test_dump_doc_text, test_trace_missing_files_fail]
     v3_tests = [test_workspace_registry, test_save_stage_report_no, test_brief_lib,
-                test_technique_lib, test_manager_log, test_single_audit,
-                test_ach_matrix, test_base_rate_downgrade, test_self_grill_brief]
+                test_technique_lib, test_ach_matrix, test_base_rate_downgrade,
+                test_self_grill_brief]
     net_tests = [test_net_damodaran, test_net_research_list, test_net_usage_probe_small]
 
     groups = [
@@ -1393,11 +1171,10 @@ def main():
         ('缓存/防堆积/交付', ops_tests),
         ('forecast_lib: 盈利预测', fc_tests),
         ('valuation_lib: 估值算子', val_tests),
-        ('socratic_lib: 质询引擎', soc_tests),
         ('review_lib: 复盘档案', rev_tests),
-        ('thesis_lib/合成/H修复', thesis_tests),
+        ('thesis_lib/合成/导出', thesis_tests),
         ('check_report_depth v2', v2_tests),
-        ('v3.0 工作区/brief/技法/PUA/单次审计', v3_tests),
+        ('工作区/brief/技法', v3_tests),
     ]
     for title, tests in groups:
         print('== %s ==' % title)

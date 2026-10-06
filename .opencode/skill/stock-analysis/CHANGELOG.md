@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v3.8（2026-10-05）单遍版：杀光多轮行为
+
+- **grill 单波化**：`brief_lib.MAX_WAVES 6→1`、`MIN_FIRST_WAVE` 保留 5；删除 followups/钻取/多波终止逻辑；模糊或缺失答案由编排器按务实偏好兜底并写入盲区，第二波直接报错；`summary` 附盲区清单
+- **删除多轮审计库**：删 `socratic_lib.py`（质询多轮攻防）与 `manager_log.py`（PUA 重写循环）；`thesis_lib` 删 `pillar_status`/`revision_checklist`；`docx_helpers` 删审计/审问统计表；工作区删 `50_sessions/`
+- **技法去迭代**：`delphi_estimate` 改为单遍低/中/高三档估计（不反复迭代）
+- **selftest 同步**：删除质询/审计/管理用例，改写 brief 为单波断言；受影响模块全部改后通过
+- **保留**（非 agent 多轮，属机械容错）：抓取 HTTP 重试 3 次、分页抓取（F10 pages/巨潮 pages）、多方法估值交叉验证（单遍计算）
+
 ## v3.7（2026-10-05）双命令自动版
 
 - **命令只保留 `/grill` 与 `/ask`**：删除 `/report` 与 `/drill`；`/grill` 批准后**自动执行流水线**（无需第二个命令）；已批准未交付 → 直接恢复执行；已交付 → 按更新报告增量重跑

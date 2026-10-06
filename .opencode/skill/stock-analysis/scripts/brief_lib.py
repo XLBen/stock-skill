@@ -1,23 +1,17 @@
 # -*- coding: utf-8 -*-
-"""需求书引擎（brief_lib）——多波次刨根 grill 的落盘载体。
+"""需求书引擎（brief_lib）——单波问询的落盘载体。
 
-grill 以文件为状态：工作区 brief.json 即 grill 痕迹。
-- 无 brief 文件 → 询问模式（/grill）：多波次批量提问，生成新 brief
-- 有 brief 文件 → 追问模式（/drill）：另一套 prompt，重审需求或回溯拷问报告
-
-波次协议（批量波次）：
-- 每波一次 question 调用批量 5~8 问（每问 2~4 选项），首波 ≥5 问
-- 钻取规则：答案含模糊词 / 引入新决策变量 / 自定义输入 → 下一波必须派生 ≥2 追问
-- 终止三条件（任一即停）：连续两波无新决策变量 / 用户答"够了" / brief 完整性校验通过
-- 安全上限 6 波；结束后输出全部决策摘要请用户批准（唯一人工门）
+/grill 与 /ask 都只问一波：
+- 一次 question 调用批量 5~6 问（每问 2~4 选项），覆盖全部必填字段
+- 模糊答案 / 缺字段由编排器按务实偏好兜底，并写入盲区（不再追问第二波）
+- 结束后输出决策摘要：/grill 请用户批准（唯一人工门）；/ask 自动批准（带免责）
 
 用法：
-    from brief_lib import new_brief, record_wave, termination_check, validate_brief, approve
+    from brief_lib import new_brief, record_wave, validate_brief, approve
     b = new_brief('中药行业', report_no=7)
     record_wave(b, questions=[{'id': 'q1', 'q': '报告类型？', 'options': [...]}, ...],
                 answers=[{'question_id': 'q1', 'answer': '深度研究'}],
                 decisions=[{'field': 'report_type', 'value': '深度研究'}])
-    stop, why = termination_check(b)
     ok, missing = validate_brief(b)
     approve(b)
 """
@@ -29,7 +23,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fetch_lib import save_json, load_json  # noqa: E402
 
-MAX_WAVES = 6
+MAX_WAVES = 1
 MIN_FIRST_WAVE = 5
 
 REQUIRED_FIELDS = ('report_type', 'reader', 'purpose', 'key_concerns',
@@ -47,102 +41,56 @@ FIELD_LABELS = {
 
 VAGUE_WORDS = ('深度', '差不多', '尽量', '大概', '可能吧', '看着办', '随便',
                '好一点', '专业一点', '再看看', '都行', '你定', '标准')
-ENOUGH_MARKS = ('够了', '不用问了', '就这些', '停止提问')
 
-
-SELF_DISCLAIMER = '需求由 self-grill 代理推导，未经用户确认——/drill 编号 可修正重跑'
+SELF_DISCLAIMER = '需求由 self-grill 代理推导，未经用户确认'
 
 
 def new_brief(subject, report_no=None, mode='user'):
     """mode='user'：真人对谈（/grill，批准=唯一人工门）；
-    mode='self'：双子代理自我拷问（/ask，self_approve 自动批准+免责标注）。"""
+    mode='self'：主上下文自推导（/ask，self_approve 自动批准+免责标注）。"""
     return {'subject': subject, 'report_no': report_no, 'mode': mode,
             'fields': {k: None for k in FIELD_LABELS},
-            'waves': [], 'followups': [], 'approval': None,
+            'waves': [], 'approval': None,
             'created': datetime.datetime.now().isoformat(timespec='seconds')}
 
 
 def vague_hits(text):
-    """检测答案中的模糊词（命中 → 下一波强制派生追问）。"""
+    """检测答案中的模糊词（命中 → 编排列入盲区并按务实偏好兜底，不再追问）。"""
     t = str(text or '')
     return [w for w in VAGUE_WORDS if w in t]
 
 
-def said_enough(answers):
-    for a in answers or []:
-        if any(m in str(a.get('answer', '')) for m in ENOUGH_MARKS):
-            return True
-    return False
-
-
-def record_wave(brief, questions, answers, decisions=None, followups=None,
-                actor='user'):
-    """记录一波问答与由此固化的决策。
+def record_wave(brief, questions, answers, decisions=None, actor='user'):
+    """记录唯一一波问答与由此固化的决策。
 
     questions: [{'id', 'q', 'options': [...]}]
     answers:   [{'question_id', 'answer'}]（answer 可为选项 label 或自定义文本）
     decisions: [{'field', 'value'}] 本波固化的需求决策（写入 brief.fields）
-    followups: 本波识别出的待深挖点（模糊词/新变量/自定义输入），下一波必须覆盖
-    actor:     'user'（/grill 真人）或 'self'（/ask 代理应答者）
+    actor:     'user'（/grill 真人）或 'self'（/ask 自推导）
     """
-    if len(brief['waves']) == 0 and len(questions or []) < MIN_FIRST_WAVE:
-        raise ValueError('首波至少 %d 问（批量波次协议），当前 %d'
+    if len(brief['waves']) >= MAX_WAVES:
+        raise ValueError('单波协议：brief 已记录 1 波，不再接受第二波（模糊/缺字段请兜底并标盲区）')
+    if len(questions or []) < MIN_FIRST_WAVE:
+        raise ValueError('至少 %d 问（一次覆盖全部必填字段），当前 %d'
                          % (MIN_FIRST_WAVE, len(questions or [])))
-    wave_no = len(brief['waves']) + 1
-    if wave_no > MAX_WAVES:
-        raise ValueError('波次超过安全上限 %d——必须出决策摘要请求批准' % MAX_WAVES)
     for d in decisions or []:
         if d['field'] not in FIELD_LABELS:
             raise ValueError('未知需求字段 %r（可用 %s）' % (d['field'], sorted(FIELD_LABELS)))
         brief['fields'][d['field']] = d['value']
-    brief['waves'].append({'wave': wave_no, 'questions': questions or [],
+    brief['waves'].append({'wave': 1, 'questions': questions or [],
                            'answers': answers or [],
                            'decisions': decisions or [],
-                           'followups': followups or [],
                            'actor': actor})
-    brief.pop('_derived_followups', None)
     return brief['waves'][-1]
 
 
-def open_followups(brief):
-    """待深挖点 = 最后一波未消化的 followups + 全部答案中的模糊词命中。"""
-    out = list(brief.get('followups') or [])
-    for w in brief['waves']:
-        for a in w.get('answers', []):
-            for hit in vague_hits(a.get('answer')):
-                out.append('波%d·%s 答案含模糊词"%s"' % (w['wave'], a.get('question_id'), hit))
-    if brief['waves']:
-        out.extend(brief['waves'][-1].get('followups') or [])
-    seen, uniq = set(), []
-    for x in out:
-        if x not in seen:
-            seen.add(x)
-            uniq.append(x)
-    return uniq
-
-
-def _new_decision_count(wave):
-    return len(wave.get('decisions') or [])
-
-
 def termination_check(brief):
-    """终止三条件（任一即停）。返回 (stop: bool, reason: str)。"""
+    """单波协议：问完即止。返回 (stop: bool, reason: str)。"""
     if brief.get('approval', {}) and brief['approval'].get('approved'):
         return True, 'brief 已批准'
-    waves = brief['waves']
-    if not waves:
-        return False, '尚未开始'
-    if said_enough(waves[-1].get('answers')):
-        return True, '用户表示"够了"'
-    if len(waves) >= 2 and _new_decision_count(waves[-1]) == 0 \
-            and _new_decision_count(waves[-2]) == 0:
-        return True, '连续两波无新决策变量'
-    ok, _missing = validate_brief(brief)
-    if ok and not open_followups(brief):
-        return True, 'brief 完整性校验通过且无待深挖点'
-    if len(waves) >= MAX_WAVES:
-        return True, '波次达安全上限 %d' % MAX_WAVES
-    return False, '继续第 %d 波（待深挖点 %d 个）' % (len(waves) + 1, len(open_followups(brief)))
+    if not brief['waves']:
+        return False, '尚未提问'
+    return True, '单波问询已完成'
 
 
 def validate_brief(brief):
@@ -196,13 +144,17 @@ def summary(brief):
         if isinstance(v, list):
             v = '；'.join(str(x) for x in v)
         lines.append('- **%s**: %s' % (label, v))
-    lines.append('- **波次**: %d 波，共 %d 问%s'
+    lines.append('- **问询**: %d 波，共 %d 问%s'
                  % (len(brief.get('waves') or []),
                     sum(len(w.get('questions') or []) for w in brief.get('waves') or []),
-                    '（self-grill 代理对谈）' if brief.get('mode') == 'self' else ''))
-    fp = open_followups(brief)
-    if fp:
-        lines.append('- **仍未查明（将写入盲区）**: %s' % '；'.join(fp[:5]))
+                    '（self-grill 自推导）' if brief.get('mode') == 'self' else ''))
+    vh = []
+    for w in brief.get('waves') or []:
+        for a in w.get('answers', []):
+            for hit in vague_hits(a.get('answer')):
+                vh.append('"%s"（%s）' % (hit, a.get('question_id')))
+    if vh:
+        lines.append('- **模糊答案（已按务实偏好兜底，写入盲区）**: %s' % '；'.join(vh[:6]))
     return '\n'.join(lines)
 
 

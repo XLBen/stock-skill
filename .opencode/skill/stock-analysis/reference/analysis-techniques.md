@@ -8,7 +8,7 @@
 | moat_scoring | 五源评无/窄/宽, 各≥1 证据数字, 无证据禁入树 |
 | base_rate_outside_view | full/standard 强制; 增长 [推断] 锚参考类, 缺 `base_rate_ref` 降 [观点] |
 | key_assumptions_check | 假设>8/依赖链: 显隐枚举, 敏感性×不确定性排序 |
-| delphi_estimate | ≥3 背靠背独立估计取中位, 分歧>20% 标记高不确定性 |
+| delphi_estimate | 单遍给低/中/高三档估计取中位, 分歧>20% 标高不确定性 |
 | ach_matrix | `ach_matrix()` 证据×假设矩阵, 最少不一致排序 |
 | scenario_2x2 | 两强相关驱动为轴→四象限 |
 | tornado_sensitivity | 参数>5 逐个±档重跑, Top2 进 `flip_point` |

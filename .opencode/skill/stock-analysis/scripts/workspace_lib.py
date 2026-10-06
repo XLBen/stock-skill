@@ -10,12 +10,11 @@
         WORKSPACE.md              文件清单索引（agent 导航唯一入口，自动生成）
         files.json                登记数据（WORKSPACE.md 的数据源）
         00_cache/                 原始抓取（fetch_lib.save_json 带 _meta）
-        10_facts/FACTS.md         数据侦察兵产出的中性事实清单（冻结后禁改）
+        10_facts/FACTS.md         数据抓取产出的中性事实清单（冻结后禁改）
         20_forecast/ 30_valuation/ 40_thesis/    预测/估值/论点树输出
-        50_sessions/              PUA manager_log / 单次审计会话 / challenge_r*.json
         60_draft/                 分章草稿（md）
         70_delivered/             历史交付版本（YYYYMMDD_7_报告名.docx 全留）
-        80_reflection/            drill 追问/复盘产物
+        80_reflection/            更新报告/复盘产物
         pipeline_log.json         flow_log 输出
       所有报告/                    人类入口：{编号}_{报告名}.docx（最新版覆盖）
 
@@ -27,7 +26,7 @@
     locate('7') / locate(7) / locate('中药行业')
 
 隔离规则：跨工作区互读禁止（更新报告例外=显式 dossier.inherited 指针）；
-旧 data/ 与 暂存区/ 报告不迁移，首次被 drill 时 assign_legacy 懒分配编号。
+旧 data/ 与 暂存区/ 报告不迁移，首次被 /grill 定位时 assign_legacy 懒分配编号。
 """
 import datetime
 import json
@@ -40,7 +39,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 _ROOT_OVERRIDE = None
 SUBDIRS = ('00_cache', '10_facts', '20_forecast', '30_valuation', '40_thesis',
-           '50_sessions', '60_draft', '70_delivered', '80_reflection')
+           '60_draft', '70_delivered', '80_reflection')
 STATUSES = ('draft', 'delivered', 'blocked', 'archived')
 ALL_REPORTS_DIR = '所有报告'
 
@@ -309,10 +308,6 @@ def brief_path(no):
 
 def facts_path(no):
     return os.path.join(workspace_dir(no), '10_facts', 'FACTS.md')
-
-
-def sessions_dir(no):
-    return os.path.join(workspace_dir(no), '50_sessions')
 
 
 def flow_log_path(no):
