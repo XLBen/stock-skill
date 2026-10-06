@@ -13,6 +13,7 @@
 [错误] 数字溯源不通过：--trace-dir 下 results_*/forecast_* 数字池可用时，
        报告表格关键数字命中率 <35%
 [警告] 图表未被引用：文档中的图未被正文"图N"引用
+[警告] 图片说明不足：图前缺 fig_intro"看图先读"说明（这张图看什么/结论）
 [警告] 证据标签缺失：投资类报告 [实证]/[推断]/[观点] 标签总数 <5
 [警告] 数字密度低：含具体数字的正文段落占比 <40%
 [警告] 裸（估）过多：>10 处（估）且无'概率依据/历史频率/发生概率'字样
@@ -34,7 +35,7 @@ import sys
 
 HEAD_RE = re.compile(r'^(第[一二三四五六七八九十]+[章节]|[一二三四五六七八九十]+[、\.]|\d+(\.\d+)*[、\.\s])')
 # v3.2 通俗外挂层标记（与 docx_helpers.PLAIN_MARKS 同源）
-PLAIN_MARKS = ('白话解读｜', '所以呢｜', '小白问：', '看表先读：', '方法卡｜')
+PLAIN_MARKS = ('白话解读｜', '所以呢｜', '小白问：', '看表先读：', '看图先读：', '方法卡｜')
 DEFAULT_MIN_WORDS = 8000
 LIB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                         'reference', 'library', 'blueprints.json')
@@ -292,11 +293,18 @@ def check_docx(path, min_words=None, rtype=None, trace_dir=None):
     no_src = [c for c in captions if '来源' not in c]
     if captions and len(no_src) == len(captions):
         warns.append('图注全部缺资料来源（img(source=...) 自动追加，专业研报惯例）')
+    n_figintro = full.count('看图先读：')
+    if n_img and n_figintro < n_img:
+        warns.append('图片说明不足: %d 张图仅 %d 条"看图先读"（每图前用 fig_intro 写一句'
+                     '这张图看什么/说明什么结论）' % (n_img, n_figintro))
 
-    # 7. 证据标签（投资类）
-    n_tags = sum(full.count(t) for t in ('[实证]', '[推断]', '[观点]', '（实证）', '（推断）', '（观点）'))
+    # 7. 证据标签（投资类；正文可不标，标签通常集中在假设表/溯源表）
+    tag_text = full + '\n' + '\n'.join(_table_texts(doc))
+    n_tags = sum(tag_text.count(t) for t in ('[实证]', '[推断]', '[观点]',
+                                             '（实证）', '（推断）', '（观点）'))
     if rtype in INVESTMENT_TYPES and n_tags < 5:
-        warns.append('证据标签过少: %d 处 [实证]/[推断]/[观点]（投资类建议 ≥5，关键假设必须标注）' % n_tags)
+        warns.append('证据标签过少: %d 处 [实证]/[推断]/[观点]（投资类建议 ≥5，'
+                     '关键假设在假设表标注证据等级）' % n_tags)
 
     # 8. 数字密度
     body_paras = [t for t in paras if not _is_head(t) and len(t) >= 20]

@@ -217,7 +217,7 @@ def _head_marker(text):
     return None
 
 
-PLAIN_MARKS = ('白话解读｜', '所以呢｜', '小白问：', '看表先读：', '方法卡｜')
+PLAIN_MARKS = ('白话解读｜', '所以呢｜', '小白问：', '看表先读：', '看图先读：', '方法卡｜')
 
 
 def _plain_marker(text):
@@ -719,6 +719,17 @@ def table_intro(doc, text):
     p = doc.add_paragraph()
     p.paragraph_format.space_after = Pt(3)
     r = p.add_run('看表先读：')
+    set_cn(r, size=9.5, bold=True, italic=True, color=GREY)
+    r = p.add_run(text)
+    set_cn(r, size=9.5, italic=True, color=GREY)
+    return p
+
+
+def fig_intro(doc, text):
+    """图前导语：每张图前一句"这张图看什么/说明什么"（配图必挂，图注之外的第二说明）。"""
+    p = doc.add_paragraph()
+    p.paragraph_format.space_after = Pt(3)
+    r = p.add_run('看图先读：')
     set_cn(r, size=9.5, bold=True, italic=True, color=GREY)
     r = p.add_run(text)
     set_cn(r, size=9.5, italic=True, color=GREY)

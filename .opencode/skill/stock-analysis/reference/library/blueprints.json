@@ -754,11 +754,12 @@
   ],
   "layout_rules": {
     "priority": "能图不表、能表不文字墙：优先图（数据图/逻辑示意图），其次紧凑表格，最后才是大段文字；QA 按此抽查",
-    "plain_layer": "通俗=专业深度的外挂，判断权归专业层；通俗层数字与专业层不一致=QA FAIL。①承重论述段（≥3 行）后挂 plain_note；②每章 ≥1 so_what；③全报告 ≥1 faq_box；④比喻必须 analogy=True 带“仅为助记”免责；⑤每章写作时先落 SELF_ATTACK 三问（空头一击/最心虚数字/动机自检）",
+    "plain_layer": "通俗=专业深度的外挂，判断权归专业层；通俗层数字与专业层不一致=QA FAIL。①承重论述段（≥3 行）后挂 plain_note；②每章 ≥1 so_what；③全报告 ≥1 faq_box；④每图前 fig_intro“看图先读”；⑤比喻必须 analogy=True 带“仅为助记”免责；⑥每章写作时先落 SELF_ATTACK 三问（空头一击/最心虚数字/动机自检）",
     "method_card": "每个估值方法/激活技法首次出现处挂 method_card（是什么/为什么用/怎么读），全报告 ≥2 张",
     "table_rules": "① 表前必配 table_intro；② 正文表 >10 行转图并移附录；③ 正文表 ≤8 行；④ 附录长表不限",
-    "charts": "数据图用 chart_helpers；定性逻辑用 diagram（标“仅为逻辑示意”）；图/表连续编号（图N/表N）且被正文引用，附录含 fig_table_list 图表清单",
+    "charts": "数据图用 chart_helpers；定性逻辑用 diagram（标“仅为逻辑示意”）；每图前 fig_intro“看图先读：这张图看什么/说明什么结论”，图注带来源；图/表连续编号（图N/表N）且被正文引用，附录含 fig_table_list 图表清单",
     "speedread": "封面后第一页 speedread_page 30秒速读：结论区（评级/区间）+理由 3~5 条+关键数字表+主图 1 张+风险与多空各一条；无目录页",
-    "style": "docx_helpers v3.4-lite 经济学人黑白红风（INK 1A1A1A / SCARLET E3120B / 浅灰），图宽 16cm、段距 8pt；全级别套用，minimal 级无 PUA、通俗质量由 QA 硬检兜底"
+    "style": "docx_helpers v3.4-lite 经济学人黑白红风（INK 1A1A1A / SCARLET E3120B / 浅灰），图宽 16cm、段距 8pt；全级别套用，minimal 级无 PUA、通俗质量由 QA 硬检兜底",
+    "tone": "文风=资深分析师写给同事：结论先行、短句、主动语态、一段一个意思；数字给口径与时点；正文不堆证据标签（[实证]/[推断]/[观点]只出现在假设表与附录溯源表）；禁 AI 腔套话（综上所述/值得注意的是/赋能/助力/开启新篇章/在大背景下）"
   }
 }

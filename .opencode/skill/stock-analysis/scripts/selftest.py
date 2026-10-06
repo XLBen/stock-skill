@@ -200,13 +200,14 @@ def test_plain_layout_elements():
     dh.method_card(doc, 'DCF 现金流折现', what='把未来现金流折成今天的价值',
                    why='现金流稳定可预测时最可靠', how_to_read='中枢高于现价=低估')
     dh.table_intro(doc, '这张表想说明：盈利预测的量价假设')
+    dh.fig_intro(doc, '这张图看的是营收趋势：2026 年增速见顶。')
     dh.add_table(doc, ['指标', '2026'], [['EPS', '2.6']], caption='盈利预测速览')
     dh.callout(doc, '评级：增持')
     path = os.path.join(TMP, 'plain.docx')
     dh.save(doc, path)
     doc2 = dh.Document(path)
     full = _doc_all_text(doc2)
-    for mark in ('30秒速读｜测试公司', '评级：增持', '理由1：', '看表先读：',
+    for mark in ('30秒速读｜测试公司', '评级：增持', '理由1：', '看表先读：', '看图先读：',
                  '白话解读｜', '※ 比喻仅为助记', '所以呢｜', '小白问：', '答：',
                  '方法卡｜DCF 现金流折现', '是什么', '为什么用它', '结果怎么读',
                  '表1　速读关键数字', '表2　盈利预测速览', '最大风险：', '多头最强论点：',

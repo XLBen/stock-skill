@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v3.6（2026-10-05）报告可读性：少注释、说人话、图有说明
+
+- **减少注释**：`[实证]/[推断]/[观点]` 标签从正文移除（只留在假设表与附录溯源表）；`check_report_depth` 标签统计改为含表格文本，正文干净不再触发"标签过少"
+- **用语人类化**：新增 `layout_rules.tone` 文风规则（结论先行/短句/主动语态/一段一个意思；禁"综上所述/值得注意的是/赋能/助力"等 AI 腔），写进 SKILL 与 docx-conventions
+- **图片说明**：新增 `docx_helpers.fig_intro()`（"看图先读：这张图看什么/说明什么结论"）；`check_report_depth` 新增"图片说明不足"警告；SKILL/docx-conventions/布局规则同步要求每图前挂 fig_intro
+- selftest 增补 fig_intro 用例；API 向后兼容（table_intro/img 不变）
+
 ## v3.5（2026-10-05）零子代理版
 
 - **全面去子代理**：不再派任何 Task——抓数、写作、PUA 审问、对抗审计全部由主上下文执行；删除 `reference/templates/`（6 个提示模板）与 `reference/subagent-protocol.md`

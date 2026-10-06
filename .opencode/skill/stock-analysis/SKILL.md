@@ -31,7 +31,7 @@ description: 泛金融报告流水线（lite 省 token 版·零子代理）。�
 2. **推导**：`profile_lib.derive(画像, brief.report_type)` → 方法集/源集/蓝图/QA；`profile_lib.profile_from_answers` 可得画像。各挂点 `technique_lib.recommend(profile, stage, …)` 自主激活 ≤3 条（full 强制 `premortem`、standard/full 强制 `base_rate`；新增走 `propose_auto`）。`flow_log.FlowLog(scope=no)` 记录。同资产先 `review_lib.load_dossier()` 取 `inherited`。
 3. **数据抓取（主上下文）**：按推导源集用 `fetch_lib`（缓存优先，`save_json` 带 _meta）落 `00_cache/`；产 `10_facts/FACTS.md`（指标|数值|口径|asof|来源，禁解读）后**冻结**——先抓数后立论，抓完不再边写边抓（补数须重新登记）。
 4. **算数字**：`forecast_lib.Assumption(value,basis,tag,probability,base_rate_ref)` + `build_equity_forecast/build_rental_forecast/build_supply_demand_balance`；`valuation_lib.run_derived` + `weighted_synthesis` + `crosscheck` + `flip_point`。增长类 [推断] 缺 base_rate_ref 自动降级。LLM 禁手算。
-5. **写作 + PUA ×1（均主上下文）**：`thesis_lib.build_thesis`（结论→3~5 承重柱→证据映射）落 `40_thesis/`；按蓝图 sections 严格顺序写全稿落 `60_draft/`，每章头写 SELF_ATTACK 三问（空头一击/最心虚数字/动机自检）；承重段挂 `plain_note`、每章 ≥1 `so_what`、全报告 ≥1 `faq_box`、技法/估值首现挂 `method_card`、表前 `table_intro`、图注带 source。随后按 PUA 清单自审全稿一次：第一问自攻验证 → ≤3 专业问（数字出处/So-what/承重）+ ≤1 通俗问，`ManagerLog.checkpoint('全稿', …)` 落盘；驳回重写 ≤1 次（换角度）。
+5. **写作 + PUA ×1（均主上下文）**：`thesis_lib.build_thesis`（结论→3~5 承重柱→证据映射）落 `40_thesis/`；按蓝图 sections 严格顺序写全稿落 `60_draft/`，每章头写 SELF_ATTACK 三问（空头一击/最心虚数字/动机自检）；承重段挂 `plain_note`、每章 ≥1 `so_what`、全报告 ≥1 `faq_box`、技法/估值首现挂 `method_card`、表前 `table_intro`、每图前 `fig_intro`（看图先读）、图注带 source；正文不堆 [实证]/[推断]/[观点] 标签（只进假设表与溯源表），文风按 layout_rules.tone（结论先行/短句/主动语态/禁 AI 腔）。随后按 PUA 清单自审全稿一次：第一问自攻验证 → ≤3 专业问（数字出处/So-what/承重）+ ≤1 通俗问，`ManagerLog.checkpoint('全稿', …)` 落盘；驳回重写 ≤1 次（换角度）。
 6. **自审 → QA → 归档**：`dump_doc_text` 全文，**只看 dump 不靠记忆**；扮空头通读重建论点树 → R1 质询（full ≥4 条含 ≥1 替代解读/隐含前提；standard ≥3；每根承重柱 ≥1 条或 `exempt_pillar`）→ `socratic_lib` `submit_challenges`/`defend`（自答 data/revise/unknown，data 必须落盘证据文件）→ 三闸 `audit_readiness`/`audit_coverage`/`audit_gate` 全过才许终稿；`revise` 带 `assumption_ref` → H1 回流重跑 forecast→valuation（full 级 R2 核修正处）。QA：`check_report_depth --type <蓝图id> --trace-dir <工作区>`、`check_delivery`、`cache_status --strict`、`render_check`（可选）。交付：`docx_helpers.save_stage(doc, 名, subject, review, report_no=no)` 双写归档 + `flow_log.save(workspace_lib.flow_log_path(no))`；输出摘要（编号/评级区间/审计与 PUA 统计/新技法/`/drill no` 提示）。预算或轮次超限 → `workspace_lib.blocked(no, 卡点, '/report resume no')`。
 
 ## 脚本速用
@@ -76,7 +76,7 @@ save_stage(doc, '报告名.docx', subject='主题', review={...}, report_no=no)
 - **先建树再写作**：thesis.json 贯穿写作与审计；审计按 pillar 攻击，禁逐句扫描。
 - **假设必带证据链**：[实证]/[推断]/[观点] + 依据 + 概率；裸（估）拦截。
 - **防自证纪律（零子代理）**：先抓数冻结 FACTS 再立论；写作只消费 FACTS+算子输出；审计以 dump 为准逐柱攻击、禁凭记忆放行；质询/回应全部落 `50_sessions/` 可回查。
-- **通俗=外挂**：判断权归专业层；比喻带"仅为助记"免责；通俗层数字与专业层不一致 = QA FAIL。
+- **通俗=外挂**：判断权归专业层；比喻带"仅为助记"免责；通俗层数字与专业层不一致 = QA FAIL；正文少标签、说人话（tone 规则），每图配"看图先读"说明。
 - 方法必须来自推导（地产禁 PE 分位；比特币/手办禁 DCF/PE）；无路可走 `stats_baseline` 并标注"统计性描述"。
 - 东财批量 ≤100、腾讯 K 线 count≤800；抓取限速 0.3s、重试 3；缓存幂等覆盖。
 
