@@ -16,6 +16,6 @@
 
 新增: ① 加 JSON(`applies` 可由 profile 求值, 先 `eval_pred` 验证)→ ② `selftest.py --offline` 不回归→ ③ 旧文档不得再引用。
 
-流程分级(`flow`): full=审计+PUA P9+强制技法/standard=审计+PUA P7/minimal=仅 QA; `update_report` 复用档案增量复核。归档 `reports/{编号}_{主题}/`+`reports/所有报告/{编号}_{名}.docx`。
+流程分级(`flow`): full=premortem/base_rate 强制+技法全开/standard=base_rate 强制/minimal=仅 QA; `update_report` 复用档案增量复核。归档 `reports/{编号}_{主题}/`+`reports/所有报告/{编号}_{名}.docx`。
 
 反例(谓词防套用): 房价禁 PE/PB 分位、DCF(cf=租金型); 比特币禁 DCF/PE/股息率(cf=无, 匹配 `nvt_mvrv`); 手办禁网格(tplus=false/无 kline); 医疗险/社保决策不推导估值(decision_report)。

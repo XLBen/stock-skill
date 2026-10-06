@@ -1,13 +1,17 @@
 ---
-description: 报告需求拷问（询问模式·1 波）：一批 5~6 问覆盖全部必填字段，产出 brief.json 并请求批准——流水线唯一人工门。
+description: 需求拷问（唯一人工门）：1 波 5~6 问问清需求，批准后自动跑完抓数/算数/写作/QA/归档产出 docx——无需再执行其他命令。
 ---
 
-加载 stock-analysis skill（.opencode/skill/stock-analysis/SKILL.md），执行需求拷问（询问模式，主上下文直接执行，不派子代理）。
+加载 stock-analysis skill（.opencode/skill/stock-analysis/SKILL.md），执行「需求拷问 + 自动流水线」（主上下文执行，不派子代理）。
 
 目标：$ARGUMENTS（为空则先问用户要分析什么）。
 
-1. **状态判定**：`workspace_lib.locate('$ARGUMENTS')`。无 brief 的新主题 → `init_workspace(主题)` 分配编号；已有 brief 或已交付 → 停止，提示改用 `/drill 编号`（禁止混用口吻）。
-2. **1 波提问**：question 工具**一次调用**提 5~6 问（每问 2~4 选项），覆盖必填字段：报告类型/读者/用途/关键关切（≥3）/失败标准/时间范围/篇幅/语言；针对本轮答案里的模糊词（深度/差不多/尽量…）或新变量，最多再追问 1 波（上限 2 波）。
-3. **落盘**：每波 `brief_lib.record_wave(brief, questions, answers, decisions)`；随后 `termination_check` 与 `validate_brief`。
-4. **收束**：输出 `brief_lib.summary(brief)` 决策摘要 + 盲区，请用户批准（唯一人工门）；批准后 `brief_lib.approve` + `save_brief(brief, workspace_lib.brief_path(编号))` + `workspace_lib.set_status(编号,'draft',brief_approved=True)`。
-5. 告知用户：`/report 编号` 启动全自治流水线，全程无需在场。
+1. **状态判定**（`workspace_lib.locate`）：
+   - 无 brief → 询问模式：`init_workspace(主题)` 分配编号；`new_brief`
+   - 有未批准 brief → 继续提问（仅当缺必填字段/含糊时补第 2 波）
+   - 已批准未交付（draft/blocked）→ 跳过提问，直接恢复执行流水线
+   - 已交付 → 按更新报告处理：新编号 + 复用 `review_lib` dossier 的 `inherited` 增量复核（不重复展开旧内容）
+2. **1 波提问**：question 工具一次提 5~6 问（每问 2~4 选项），覆盖必填字段：report_type/reader/purpose/key_concerns（≥3）/failure_criteria/time_range/length_pref/language；针对模糊词（深度/差不多/尽量…）或新变量最多再追 1 波（上限 2 波）。
+3. **落盘与批准**：每波 `brief_lib.record_wave(brief, questions, answers, decisions)` → `termination_check`/`validate_brief` → 输出 `summary(brief)` 摘要与盲区，请用户批准（唯一人工门）；批准后 `approve` + `save_brief(brief, workspace_lib.brief_path(编号))` + `set_status(编号,'draft',brief_approved=True,flow_level=…)`。
+4. **批准后立即自动执行流水线**（不停顿、无需其他命令）：`profile_lib.derive` 推导 → 抓数 + `FACTS.md` 冻结 → `forecast_lib`/`valuation_lib` 算全部数字 → `thesis_lib` 建树并顺序写全稿（通俗件 + tone 文风 + 每图 `fig_intro` + 独立反方论点小节）→ 脚本 QA（`check_report_depth --type <蓝图id> --trace-dir <工作区>` / `check_delivery` / `cache_status --strict`）0 错误 → `save_stage` 双写归档 → 输出完成摘要（编号/评级区间/成本/文件路径）。
+5. 若中途数据缺失：降级标注进盲点清单，不悬停；确实无法继续时 `workspace_lib.blocked(编号, 卡点)` 并输出卡点，重新运行 `/grill 主题` 即从卡点恢复。

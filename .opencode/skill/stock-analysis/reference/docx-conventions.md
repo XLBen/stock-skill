@@ -18,7 +18,7 @@
 ## 通俗层(layout_rules)
 - 文风: 结论先行/短句/主动语态/一段一个意思; 正文不堆 `[实证]/[推断]/[观点]`(只进假设表与溯源表); 禁 AI 腔(综上所述/值得注意的是/赋能/助力)
 - priority 能图不表, 能表不文字墙; 定性逻辑用 `diagram`(note"仅为逻辑示意"); 图库 `chart_helpers`: line_chart/bar_chart/hbar/heatmap/boxplot/twin_bar_line/waterfall/diagram
-- 承重段(≥3 行)后挂 `plain_note`(`analogy=True` 附"※仅为助记"); 每章 ≥1 `so_what`; 全报告 ≥1 `faq_box`(PUA 自审或写作时预判)
+- 承重段(≥3 行)后挂 `plain_note`(`analogy=True` 附"※仅为助记"); 每章 ≥1 `so_what`; 全报告 ≥1 `faq_box`(写作时预判读者疑问)
 - 估值/技法首现挂 `method_card(name,what,why,how_to_read)`; 表前 `table_intro`; 正文表 >10 行转图(`bar_chart`/`hbar`/`heatmap`)移附录, 正文 ≤8 行
 - `img`/`add_table` caption 自动"图N/表N"; 每图前 `fig_intro`"看图先读: 这张图看什么/说明什么结论", 图注来源由 `img(source=...)` 自动追加; `fig_table_list` 附录清单; 封面后 `speedread_page` 30 秒速读(结论+理由+数字表+主图+多空); 通俗层数字须与专业层一致(QA 硬检), 判断权归专业层; 速读页+方法卡≥2/白话&所以呢≥5/FAQ≥1
 
@@ -33,4 +33,4 @@
 `save_stage(doc,文件名,subject,review,report_no)` 双写归档; 命名 `{主题}投资研究报告_YYYYMMDD.docx`(特殊类型可后缀, 禁 `_` 双分隔); 暂存区 `暂存区/`, 确认后移动至 `分类区/{主题}/`, PNG/JSON 随档。
 
 ## 附录表
-`provenance_table` 溯源, `socratic_stats_table` 审计统计, `manager_stats_table` 审问统计, `data_asof_table` 数据截止(`fetch_lib.cache_meta_table`), `fig_table_list` 图表清单, `img(doc,path,caption,source=…)` 图注编号+来源; 常用 `new_document`, `cover`, `para`, `dump_doc_text`, `diagram`。
+`provenance_table` 溯源, `data_asof_table` 数据截止(`fetch_lib.cache_meta_table`), `fig_table_list` 图表清单, `img(doc,path,caption,source=…)` 图注编号+来源; 常用 `new_document`, `cover`, `para`, `dump_doc_text`, `diagram`。

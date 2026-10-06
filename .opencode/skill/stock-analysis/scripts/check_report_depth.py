@@ -21,7 +21,7 @@
 [错误] 通俗层数字与专业层不一致（v3.2）：白话解读/所以呢/小白问框内数字
        未出现在正文或表格——通俗只是专业深度的外挂，无权引入新数字
 [警告] 缺速读页"30秒速读" / 通俗覆盖不足（方法卡/白话注/FAQ 数量低于阈值，
-       v3.2 layout_rules 要求；minimal 级无 PUA 由本检查兜底）
+       layout_rules 要求；本检查兜底）
 [信息] 各章节字数分布（定位薄弱章节：补新论点，不是扩写）
 
 min_words 来源：--type 蓝图 id > --min 显式值 > 默认 8000。退出码：错误=1，仅警告=0。
@@ -325,8 +325,8 @@ def check_docx(path, min_words=None, rtype=None, trace_dir=None):
         warns.append('缺盲点/未查到清单')
     if not any(k in full for k in ('机会成本', '相对基准', '与同期', '对比表')):
         warns.append('缺相对基准/机会成本对比')
-    if rtype in INVESTMENT_TYPES and not any(k in full for k in ('反方', '看空', '质询')):
-        warns.append('缺反方论点/质询记录（应由苏格拉底质询记录驱动，禁止自写自答）')
+    if rtype in INVESTMENT_TYPES and not any(k in full for k in ('反方', '看空')):
+        warns.append('缺反方论点（独立小节，正反两面都写，禁止只列一边）')
 
     # 11. 通俗外挂层（v3.2）：通俗层数字必须与专业层一致（通俗无权引入新数字）
     all_texts = paras + _table_texts(doc)
@@ -359,7 +359,7 @@ def check_docx(path, min_words=None, rtype=None, trace_dir=None):
                       '必须出自正文或表格，通俗层无权引入新数字）样例: %s'
                       % (len(unmatched), unmatched[:3]))
 
-    # 12. 速读页与通俗覆盖（v3.2 排版件；minimal 级无 PUA，由本检查兜底）
+    # 12. 速读页与通俗覆盖（排版件；minimal 级无人工审问，由本检查兜底）
     if '30秒速读' not in full:
         warns.append('缺速读页：封面后第一页应有"30秒速读"一页纸（speedread_page）')
     n_cards = full.count('方法卡｜')
