@@ -18,18 +18,20 @@ EXT = ('.json', '.png', '.csv', '.xlsx')
 
 
 def find_project_root():
+    """自 scripts/ 向上找含 .opencode/ 的祖先；找不到报错（绝不返回 / 扫全盘）。"""
     d = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     while True:
+        if os.path.isdir(os.path.join(d, '.opencode')):
+            return d
         parent = os.path.dirname(d)
         if parent == d:
-            return d
-        if os.path.isdir(os.path.join(d, '暂存区')) and os.path.isdir(os.path.join(d, '分类区')):
-            return d
+            raise RuntimeError('未找到项目根（需含 .opencode/ 目录）')
         d = parent
 
 
-def main():
-    root = find_project_root()
+def main(root=None):
+    if root is None:
+        root = find_project_root()
     max_mb = 10
     if '--max-mb' in sys.argv:
         max_mb = int(sys.argv[sys.argv.index('--max-mb') + 1])

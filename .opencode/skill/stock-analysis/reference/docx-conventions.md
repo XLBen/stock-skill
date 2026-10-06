@@ -1,85 +1,35 @@
-# Word 报告规范（股票分析 skill 专用）
+# Word 报告规范
 
-## 1. 样式令牌（全局统一，所有报告一律生效，不随资产变化）
+`scripts/docx_helpers.py` 全局强制, 禁内联样式; 经济学人黑白红风。
 
-由 `scripts/docx_helpers.py` 强制执行，禁止内联复制样式代码。**v3.3 经济学人黑白红风：墨黑+经红+浅灰（The Economist 参照）**。
-
+## 样式令牌
 | 元素 | 规范 |
 |---|---|
-| 配色 | 墨黑 INK `1A1A1A`（标题/表头/色带）、经济学人红 SCARLET `E3120B`（装饰条/所以呢框）、发丝线 HAIRLINE `BFBFBF`、浅灰 CREAM `F7F7F7`（callout/元信息底）、ZEBRA `F2F2F2`（斑马纹）、正文 DARK `262626`、风险 RED `C0504D`（灰调砖红，与经红区分）；旧名 NAVY/STEEL/MAROON/GOLD 为兼容别名（值=INK/SCARLET） |
-| 正文 | 宋体 10.5~11pt + Times New Roman，行距 1.35，首行缩进 0.74cm，段后 8pt（平板友好） |
-| 一级标题 | 黑体 15pt 加粗墨黑，左侧 3pt 经济学人红条（`w:pBdr` left sz=22）+ 底部 0.8pt 发丝线（sz=6 `BFBFBF`） |
-| 二级标题 | 黑体 12.5pt 加粗墨黑，左侧细红条（sz=10） |
-| 三级标题 | 黑体 11pt 加粗深灰，左侧灰条（sz=6 `8C8C8C`） |
-| 表格 | `Table Grid` 居中；表头墨黑底 `1A1A1A` 白字 9~9.5pt 加粗 + 行高 ≥0.55cm；奇数行浅灰斑马纹 `F2F2F2`；首列加粗深灰；cell 内边距上下 0.08cm 左右 0.12cm；首列左对齐其余居中；列宽 Cm 显式指定 |
-| 图 | 居中，宽 13.5~16cm（默认 16），图注灰色 9pt 居中；图表主色墨黑/深灰、强调与负值经红（chart_helpers 已统一） |
-| 图表编号 | v3.2：图/表自动连续编号"图N　题注"/"表N　题注"（img/add_table caption 参数），附录含图表清单 `fig_table_list(doc)`；正文引用写"见图N" |
-| 提示框 callout | 单格着色表格 + 左侧色条：结论型 `★`（浅蓝灰底 `EEF2F8` + 海军蓝条）、风险型 `⚠`（淡红底 `FBE9E9` + 红色条），文字加粗 |
-| 通俗外挂层 | v3.2：`plain_note`【白话解读｜】浅灰底 `F5F5F5`+灰条（专业段后逐段外挂，analogy=True 追加"※比喻仅为助记"免责）；`so_what`【所以呢｜】极浅红底 `FCEBE9`+经红条；`faq_box`【小白问：/答：】白底灰虚线；`method_card`【方法卡｜名称】三段式（是什么/为什么用它/结果怎么读）；`table_intro`【看表先读：】斜体灰表前导语。通俗层只是专业深度的外挂，判断权归专业层 |
-| 速读页 | v3.2：封面后第一页 `speedread_page`——30秒速读：结论 callout+理由速览+关键数字小表+主图+风险多空，一页放完，无目录 |
-| 封面 | 顶部全宽墨黑色带（黑体 12pt 白字徽章，行高 0.9cm）→ 黑体 28pt 加粗墨黑标题 → 经济学人红细线（sz=10）→ 14pt 灰副标题 → 浅灰元信息块（每行居中灰字）→ 砖红免责声明 |
-| 页眉页脚 | `setup_page(doc, 标题, 日期)`：页眉=黑 8pt 灰标题（右日期）+ 经济学人红细线；页脚=居中页码 `— N —`（PAGE 域，宋体 9pt 灰）；首页自动跳过 |
-| 页边距 | 上下 2.4/2.2cm、左右 2.4cm；章节间 `doc.add_page_break()` |
-| 颜色常量 | INK/SCARLET/RED/GREY/DARK/WHITE + INK_HEX/SCARLET_HEX/HAIRLINE_HEX；NAVY/STEEL/MAROON/GOLD/BLUE/BLUE2/SAND_HEX 为兼容别名 |
+| 配色 | INK `1A1A1A`(标题/表头/色带), SCARLET `E3120B`(装饰条/所以呢), HAIRLINE `BFBFBF`, CREAM `F7F7F7`, ZEBRA `F2F2F2`, DARK `262626`, RED `C0504D` |
+| 注块底 | WARN_FILL `FBE9E9`, NOTE_FILL `F5F5F5`, SOWHAT_FILL `FCEBE9` |
+| 别名 | NAVY/STEEL/MAROON/GOLD/BLUE/BLUE2=INK/SCARLET; SAND_HEX=SCARLET_HEX |
+| 正文 | 宋体 10.5~11pt+Times New Roman; 行距 1.35; 首行缩进 0.74cm; 段后 8pt |
+| 标题 | H1 黑体 15pt 粗 INK+左 3pt SCARLET 条(`w:pBdr` sz=22)+底 HAIRLINE 0.8pt(sz=6); H2 12.5pt+红条 sz=10; H3 11pt 灰+灰条 sz=6 `8C8C8C` |
+| 表格 | `Table Grid` 居中; 表头 INK 底白字 9~9.5pt 粗, 行高≥0.55cm; 奇行 ZEBRA; 首列粗深灰; 内边距 0.08/0.12cm; 列宽 Cm |
+| 图 | 居中宽 16cm(13.5~16); 图注灰 9pt; 主色 INK/灰, 强调/负值 SCARLET |
+| 封面 | INK 色带(12pt 白字)→28pt INK 标题→SCARLET 线→14pt 灰副题→CREAM 元信息→砖红免责 |
+| 页眉脚 | `setup_page(doc,标题,日期)`: 页眉 INK 8pt 灰标题(右日期)+SCARLET 线; 页脚居中 `— N —`(PAGE 域 9pt 灰); 首页跳过; 边距上下 2.4/2.2cm, 左右 2.4cm; 章间 `add_page_break()` |
 
-## 2. 报告结构（蓝图驱动，随资产画像推导）
+## 通俗层(layout_rules)
+- priority 能图不表, 能表不文字墙; 定性逻辑用 `diagram`(note"仅为逻辑示意"); 图库 `chart_helpers`: line_chart/bar_chart/hbar/heatmap/boxplot/twin_bar_line/waterfall/diagram
+- 承重段(≥3 行)后挂 `plain_note`(`analogy=True` 附"※仅为助记"); 每章 ≥1 `so_what`; 全报告 ≥1 `faq_box`(PUA/写手预判)
+- 估值/技法首现挂 `method_card(name,what,why,how_to_read)`; 表前 `table_intro`; 正文表 >10 行转图(`bar_chart`/`hbar`/`heatmap`)移附录, 正文 ≤8 行
+- `img`/`add_table` caption 自动"图N/表N"; `fig_table_list` 附录清单; 封面后 `speedread_page` 30 秒速读(结论+理由+数字表+主图+多空); 通俗层数字须与专业层一致(QA 硬检), 判断权归专业层; 速读页+方法卡≥2/白话&所以呢≥5/FAQ≥1
 
-章节结构与每章元素规格由 `reference/library/blueprints.json` 推导决定，**禁止手写固定章节**：
-- `equity_deep_7ch` 个股深度（cf=有 & disc=有）：封面→摘要→7 章（概况/营收结构/行业格局/经营困境/财务质量/估值≥3 方法/投资建议）→附录
-- `rental_asset` 租金型资产（cf=租金型）：封面→摘要→资产基本面→租金与现金流→估值（资本化率等）→情景与建议→附录
-- `asset_research` 无基本面资产（cf=无，收藏品/加密）：封面→摘要→资产基本面（供给/稀缺/持有成本）→成交与价格特征→估值锚（价格指数化/重置成本/链上）→情景与建议→附录
-- `theme_quant` 主题量化 / `strategy_manual` 策略手册 / `educational` 科普 / `decision_report` 决策测算
+## 报告结构(蓝图驱动, 禁手写章节)
+`blueprints.json` 按画像推导; `optional_sections.dispute` trigger=true 必含: 分歧摘要表→正反论据→敏感性拆解→裁决, 未触发标"多方法一致性 N/M"。
 
-**条件章节**：`optional_sections.dispute`（方法分歧与正反论证）在 `dispute.trigger=true` 时必含。
+## QA
+1. `check_delivery` 0 错误; `cache_status --strict`; stale 标截止日期; 章与蓝图一致(缺章 FAIL); 图编号连续; 禁区方法(地产 PE 分位, 加密 DCF)FAIL; 估算标(估)
+2. `check_report_depth --type 蓝图id --trace-dir 工作区` 0 错误: 空章/字数下限(full 8000, standard 6000, minimal 4000, update 3000 字符)/强制章/数字溯源/图注来源/证据标签; 强制章节 `research_process`/`assumption_validity`/`divergent_views` 齐全; 关键数字可复算; 通俗层数字在正文
 
-### 2.1 方法分歧与正反论证章节（触发时必含）
+## 交付
+`save_stage(doc,文件名,subject,review,report_no)` 双写归档; 命名 `{主题}投资研究报告_YYYYMMDD.docx`(特殊类型可后缀, 禁 `_` 双分隔); 暂存区 `暂存区/`, 确认后移动至 `分类区/{主题}/`, PNG/JSON 随档。
 
-1. **分歧摘要表**：方法 | 结论区间 | 核心假设 | 差异来源（增长/折现率/乘数/数据口径）
-2. **正方论据** 2~3 段（多头立场采用的方法与理由）
-3. **反方论据** 2~3 段（空头立场采用的方法与理由）
-4. **差异拆解**：参数敏感性把分歧量化分解到各假设贡献（如折现率 ±0.5%、永续增长 ±0.5% 各贡献多少元/股）
-5. **裁决 callout**：分歧是否改变评级/权重（蓝=维持，橙=降级/调整）
-
-未触发时不设此章节，估值汇总表旁标注"多方法一致性: N/M 方法区间重叠，结论稳健"。
-
-## 3. QA 质检清单（交付前逐项核对，第 5~11 项为质量机制项）
-
-1. 打开生成的 docx，抽查关键数字出现在正文或表格（写 `qa_report.py`：断言关键数字 in 段落文本/表单元格，输出词数/表数/图数）
-2. 封面、摘要、正文、附录齐全；章节页断正确；**章节与推导蓝图一致**（缺章即 FAIL）
-3. 所有图片存在且图注编号连续（图1、图2…）
-4. 表格表头样式正确、无文字溢出（关键长文本列宽加宽）
-5. **方法谓词校验**：报告中每个估值方法属于推导方法集（`derive()` 输出），命中禁止类（如地产用 PE 分位、加密用 DCF）→ FAIL
-6. **分歧检测**：`dispute_analysis` trigger=true 则含正反论证章节；trigger=false 则含"多方法一致性"标注；牵强对比（失真方法强行对比）→ FAIL
-7. **业界取证**：`usage_probe.py` 结果引用——方法命中率 <10% 且无权威源（Damodaran/指数编制方案）→ 报告必须标注"非常规方法"；样本 <10 份 → WARN；**有研报覆盖的资产必须跑过 usage_probe**
-8. **缓存与堆积**：`cache_status.py --strict` 通过；stale 数据在报告标注"数据截止日期"；`check_delivery.py` 0 错误（落点/命名/防堆积）
-9. 报告含：数据来源、关键假设、风险提示、免责声明（红色）
-10. 数字口径统一（金额单位、百分位、同比基准），估算值标注"（估）"
-11. **深度质检**：`python scripts/check_report_depth.py 报告.docx --type 蓝图id --trace-dir 数据目录` 0 错误——空章节/字数下限（**按蓝图差异化**：深度/资产/租金 ≥20000，手册/科普 ≥15000，决策 ≥10000，更新报告 ≥8000；各节指引见 blueprints.json spec）/强制章节/蓝图必备章/数字溯源（表格+正文证据句 vs 算子输出池，无文件即 FAIL）/图表引用/图注资料来源/证据标签/数字密度；章节字数分布用于定位薄弱章节（补新论点，非扩写）
-12. **强制章节**（每个蓝图必含，见 blueprints.json）：
-    - `research_process` 调研过程与方法：源清单+可靠性评级（实测/强估/弱估）+ **盲点清单"没查到什么"**+多源同源说明
-    - `assumption_validity` 关键假设有效性表：假设|数值|依据|反证|**发生概率|概率依据**|置信等级|**失效信号**|**复查时间点**——禁止裸标"（估）"
-    - `divergent_views` 发散检验：历史类比≥1（含结局统计与差异点）+ 反事实≥1 + 机会成本/外部视角≥1 + **相对基准对比表**（投资类必含）
-13. **计算链可复算**：关键结论数字（如概率加权中枢）必须能从表格/公式复算，缺中间表 → FAIL；多口径冲突（如两处参数说法不同）必须裁决说明
-14. **核心变量覆盖**：报告声明的"核心驱动/最大风险"必须出现在敏感性或情景矩阵中（自认核心变量不可缺席）
-15. **结论有效期**：必写"结论有效期 + 复查触发条件"（什么可观测信号出现后需更新结论）
-16. **通俗层一致性（v3.2，硬检）**：白话解读/所以呢/小白问框内数字必须出现在正文或表格——通俗层无权引入新数字（check_report_depth 已实现，违反 = FAIL）
-17. **通俗覆盖与速读页（v3.2）**：封面后第一页含"30秒速读"；投资类报告方法卡 ≥2、白话/所以呢注 ≥5、FAQ 框 ≥1（minimal 级无 PUA，由本检查兜底）；图/表编号连续且附录含图表清单
-
-## 4. 交付规则（强制）
-
-- **交付函数**：报告必须用 `scripts/docx_helpers.py` 的 `save_stage(doc, 文件名)` 输出，自动落到项目根 `暂存区/`。`save_stage` 只接受文件名（不含路径），禁止各脚本硬编码输出路径；带 `subject+review` 参数时自动落档资产档案（复盘闭环）。
-- **命名规范**：统一 `{主题}投资研究报告_YYYYMMDD.docx`（或带研究问题名）。特殊类型文档（操作手册/科普/测算/分析/更新）允许保留对应后缀，但必须 `_YYYYMMDD.docx` 结尾。禁止 `_` 双分隔符。
-- **唯一暂存区**：项目根 `暂存区/` 是唯一暂存位置，禁止在子项目目录建二级暂存区。
-- **归档**：用户确认后把报告**移动**（不是复制）到 `分类区/{主题}/`；数据图表（PNG）与结果 JSON 随报告归档，脚本与中间数据可清理。
-- **质检**：交付前运行 `python scripts/check_delivery.py`，0 错误才算通过；已纳入 `selftest.py --offline`。
-
-## 5. 附录自动表格（v2 新增，附录必备）
-
-| 函数 | 表格 | 来源 |
-|---|---|---|
-| `provenance_table(doc, results)` | 数字溯源表（方法/区间中枢/来源文件/字段/抓取时间） | valuation_lib 结果 |
-| `socratic_stats_table(doc, stats)` | 审计统计表（单次审计：轮数/裁决/修正/留白/背反/驳回+三闸自检） | socratic_lib.stats |
-| `data_asof_table(doc, rows)` | 数据截止时间表（文件/抓取时间/TTL/scope/来源） | fetch_lib.cache_meta_table |
-| `img(doc, path, caption, source=...)` | 图注自动"图N"编号+追加"（资料来源：…）" | QA 检查图注来源 |
-| `fig_table_list(doc)` | 附录·图表清单（v3.2，编号/标题/类型） | img/add_table 自动登记 |
-| `manager_stats_table(doc, stats)` | 管理员审问统计（含 v3.2 通俗问 kind='plain' 计数） | manager_log.stats |
+## 附录表
+`provenance_table` 溯源, `socratic_stats_table` 审计统计, `manager_stats_table` 审问统计, `data_asof_table` 数据截止(`fetch_lib.cache_meta_table`), `fig_table_list` 图表清单, `img(doc,path,caption,source=…)` 图注编号+来源; 常用 `new_document`, `cover`, `para`, `dump_doc_text`, `diagram`。

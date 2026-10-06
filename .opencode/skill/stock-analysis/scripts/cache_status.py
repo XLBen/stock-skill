@@ -32,13 +32,14 @@ TTL_BY_KEYWORD = [
 
 
 def find_project_root():
+    """自 scripts/ 向上找含 .opencode/ 的祖先；找不到返回 None。"""
     d = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     while True:
+        if os.path.isdir(os.path.join(d, '.opencode')):
+            return d
         parent = os.path.dirname(d)
         if parent == d:
             return None
-        if os.path.isdir(os.path.join(d, '暂存区')) and os.path.isdir(os.path.join(d, '分类区')):
-            return d
         d = parent
 
 
@@ -72,11 +73,10 @@ def check_file(path, now):
 
 
 def main():
-    root = find_project_root()
-    if not root:
-        print('FAIL: 找不到项目根目录')
+    root = sys.argv[sys.argv.index('--root') + 1] if '--root' in sys.argv else find_project_root()
+    if not root or not os.path.isdir(root):
+        print('FAIL: 找不到项目根目录（--root 指定或项目含 .opencode/）')
         return 1
-    root = sys.argv[sys.argv.index('--root') + 1] if '--root' in sys.argv else root
     strict = '--strict' in sys.argv
     now = datetime.datetime.now()
     counts = {}

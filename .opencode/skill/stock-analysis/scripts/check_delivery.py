@@ -97,7 +97,7 @@ def main():
     dup_code = 0
     try:
         import check_storage
-        dup_code = check_storage.main()
+        dup_code = check_storage.main(root)
         if dup_code:
             print('WARN: 存在同名/同内容重复数据文件（P6 存量清理项），运行 python scripts/check_storage.py 查看')
     except Exception as e:

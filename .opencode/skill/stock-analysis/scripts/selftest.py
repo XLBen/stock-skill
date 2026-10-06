@@ -505,10 +505,10 @@ def test_check_delivery():
 
 def test_check_report_depth():
     import check_report_depth as crd
-    expect(crd.DEFAULT_MIN_WORDS == 20000, '字数门槛应为 20000')
-    floor = {'equity_deep_8ch': 20000, 'asset_research': 20000, 'rental_asset': 20000,
-             'theme_quant': 20000, 'strategy_manual': 15000, 'educational': 15000,
-             'decision_report': 10000, 'update_report': 8000}
+    expect(crd.DEFAULT_MIN_WORDS == 8000, 'lite 字数门槛应为 8000')
+    floor = {'equity_deep_8ch': 8000, 'asset_research': 8000, 'rental_asset': 8000,
+             'theme_quant': 6000, 'strategy_manual': 5000, 'educational': 5000,
+             'decision_report': 4000, 'update_report': 3000}
     for blp in pl._load_json('blueprints.json')['blueprints']:
         expect(blp.get('min_words', 0) >= floor.get(blp['id'], 8000),
                '蓝图 %s min_words 应 ≥%s' % (blp['id'], floor.get(blp['id'], 8000)))

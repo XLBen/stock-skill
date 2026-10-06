@@ -6,7 +6,7 @@
 
 检查项：
 [错误] 空章节：标题后无正文/表格/图片（标题紧跟标题）
-[错误] 字数不足：低于 min_words（默认 20000；--min 可覆盖）。字数不足的解法是
+[错误] 字数不足：低于 min_words（默认 8000；--min/--type 可覆盖）。字数不足的解法是
        补新论点+新数据源，禁止扩写现有文本注水（见输出提示）
 [错误] 强制章节缺失：调研过程与方法 / 关键假设有效性评估 / 发散检验
 [错误] 蓝图必备章缺失：--type 指定时按蓝图检查核心章（如 equity_deep_8ch 的"盈利预测"）
@@ -23,7 +23,7 @@
        v3.2 layout_rules 要求；minimal 级无 PUA 由本检查兜底）
 [信息] 各章节字数分布（定位薄弱章节：补新论点，不是扩写）
 
-min_words 来源：--type 蓝图 id > --min 显式值 > 默认 20000。退出码：错误=1，仅警告=0。
+min_words 来源：--type 蓝图 id > --min 显式值 > 默认 8000。退出码：错误=1，仅警告=0。
 """
 import glob
 import json
@@ -35,7 +35,7 @@ import sys
 HEAD_RE = re.compile(r'^(第[一二三四五六七八九十]+[章节]|[一二三四五六七八九十]+[、\.]|\d+(\.\d+)*[、\.\s])')
 # v3.2 通俗外挂层标记（与 docx_helpers.PLAIN_MARKS 同源）
 PLAIN_MARKS = ('白话解读｜', '所以呢｜', '小白问：', '看表先读：', '方法卡｜')
-DEFAULT_MIN_WORDS = 20000
+DEFAULT_MIN_WORDS = 8000
 LIB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                         'reference', 'library', 'blueprints.json')
 REQUIRED = {

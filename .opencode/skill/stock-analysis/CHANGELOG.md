@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## v3.4-lite（2026-10-05）极致省 token 版
+
+- **文档瘦身**：SKILL.md 18→5.6KB、4 个命令与 6 个模板、6 个 reference 文档全部压缩 70%+；删除 v3.2/v3.3 叙述性内容与重复示例，保留全部脚本 API/JSON schema/枚举
+- **运行流程简化**：
+  - grill 由 ≤6 波降为默认 1 波（≤6 问一次覆盖全部必填字段），仅模糊/缺字段加 1 波，上限 2 波；self-grill（/ask）降为 1 轮
+  - 子代理由 10+ 降为 **≤3**：侦察兵 1、写手 1（一次顺序写全稿）、审计员 1；PUA 由逐章降为**全稿 1 次**（≤3 专业 + ≤1 通俗）；技法分析并入预测/估值，不另派代理
+  - 审计默认只跑 **R1**；仅 `revise` 击穿假设才 H1 回流重跑预测估值，full 级加 R2 只核修正处
+  - 蓝军自攻五问降为 SELF_ATTACK 三问（空头一击/最心虚数字/动机自检）
+- **篇幅降档**：蓝图 min_words：full/asset/rental 20000→8000、theme_quant→6000、strategy/educational→5000、decision→4000、update→3000；各章 `参考字数` 同步重标；`check_report_depth.DEFAULT_MIN_WORDS` 20000→8000
+- **兼容性**：脚本库仅改 3 个常量与蓝图为数据降档，函数签名/JSON 结构/质量闸（三闸+PUA 裁决+QA）不变；selftest 断言同步更新
+- **QA 性能修复**：`check_storage`/`cache_status` 项目根定位改用 `.opencode/` 标记（旧版寻 暂存区/分类区，缺失时会扫全盘/找不到根导致 QA 卡死）；`check_delivery` 向 `check_storage.main(root)` 传根，扫描范围 = 项目根
+
 ## v3.3（2026-10-04）经济学人版式 + PUA 自我怀疑制
 
 - **配色改版**：v3.2 深蓝投行风（海军蓝/钢蓝/浅蓝灰）→ **经济学人黑白红风**——墨黑 INK `1A1A1A`（标题/表头/色带）、经济学人红 SCARLET `E3120B`（H1 左条/封面线/所以呢框/图表强调与负值）、发丝线 `BFBFBF`、浅灰斑马 `F2F2F2`、风险砖红 `C0504D` 保留（与经红区分）；旧常量名（NAVY/STEEL/MAROON/GOLD/SAND_HEX）全部保留为别名，外部引用零破坏；chart_helpers 全图表与 diagram 同步换肤（主色墨黑/深灰，强调经红）
